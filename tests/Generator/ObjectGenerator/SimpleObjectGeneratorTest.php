@@ -13,6 +13,11 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\ObjectGenerator;
 
+use Nelmio\Alice\Definition\Object\CompleteObject;
+use Nelmio\Alice\FixtureBag;
+use Nelmio\Alice\Generator\Caller\SimpleCaller;
+use Nelmio\Alice\Generator\Hydrator\Property\SymfonyPropertyAccessorHydrator;
+use Nelmio\Alice\Generator\Hydrator\SimpleHydrator;
 use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\SimpleFixture;
 use Nelmio\Alice\Definition\Object\SimpleObject;
@@ -29,6 +34,8 @@ use Nelmio\Alice\Generator\ResolvedFixtureSetFactory;
 use Nelmio\Alice\Generator\Resolver\Value\FakeValueResolver;
 use Nelmio\Alice\ObjectBag;
 use Prophecy\Argument;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\PropertyAccess\PropertyAccessorBuilder;
 
 /**
  * @covers \Nelmio\Alice\Generator\ObjectGenerator\SimpleObjectGenerator
@@ -75,10 +82,7 @@ class SimpleObjectGeneratorTest extends TestCase
         /** @var InstantiatorInterface $instantiator */
         $instantiator = $instantiatorProphecy->reveal();
 
-        $hydratedInstance = clone $instance;
-        $hydratedInstance->hydrated = true;
-
-        $hydratedObject = new SimpleObject($fixture->getId(), $hydratedInstance);
+        $hydratedObject = new SimpleObject($fixture->getId(), $instance);
 
         $hydratorProphecy = $this->prophesize(HydratorInterface::class);
         $hydratorProphecy
@@ -94,10 +98,7 @@ class SimpleObjectGeneratorTest extends TestCase
         /** @var HydratorInterface $hydrator */
         $hydrator = $hydratorProphecy->reveal();
 
-        $instanceAfterCalls = clone $hydratedInstance;
-        $instanceAfterCalls->calls = true;
-
-        $objectAfterCalls = new SimpleObject($fixture->getId(), $instanceAfterCalls);
+        $objectAfterCalls = new SimpleObject($fixture->getId(), $instance);
 
         $callerProphecy = $this->prophesize(CallerInterface::class);
         $callerProphecy
@@ -121,5 +122,44 @@ class SimpleObjectGeneratorTest extends TestCase
         $instantiatorProphecy->instantiate(Argument::cetera())->shouldHaveBeenCalledTimes(1);
         $hydratorProphecy->hydrate(Argument::cetera())->shouldHaveBeenCalledTimes(1);
         $callerProphecy->doCallsOn(Argument::cetera())->shouldHaveBeenCalledTimes(1);
+    }
+
+    /**
+     * @testdox Do a instantiate-hydrate-calls cycle to generate the object described by the fixture.
+     */
+    public function testGenerateNeedsCompleteGeneration()
+    {
+        $fixture = new SimpleFixture('dummy', \stdClass::class, SpecificationBagFactory::create());
+        $set = ResolvedFixtureSetFactory::create()->withFixtures((new FixtureBag())->with($fixture));
+        $context = new GenerationContext();
+        $context->markIsResolvingFixture('foo');
+        $instance = new \stdClass();
+        $instantiatedObject = new SimpleObject($fixture->getId(), $instance);
+
+        $instantiatorProphecy = $this->prophesize(InstantiatorInterface::class);
+        $instantiatorProphecy
+            ->instantiate($fixture, $set, $context)
+            ->willReturn(
+                $setWithInstantiatedObject = ResolvedFixtureSetFactory::create(
+                    null,
+                    null,
+                    (new ObjectBag())->with($instantiatedObject)
+                )
+            )
+        ;
+        /** @var InstantiatorInterface $instantiator */
+        $instantiator = $instantiatorProphecy->reveal();
+
+        $generator = new SimpleObjectGenerator(new FakeValueResolver(), $instantiator, new SimpleHydrator(new SymfonyPropertyAccessorHydrator(new PropertyAccessor)), new SimpleCaller());
+        $objects = $generator->generate($fixture, $set, $context);
+        $context->markAsNeedsCompleteGeneration();
+        $context->setToSecondPass();
+        $set = $set->withObjects($objects);
+        $completeObjects = $generator->generate($fixture, $set, $context);
+        $context->unmarkAsNeedsCompleteGeneration();
+
+        $this->assertInstanceOf(CompleteObject::class, $completeObjects->get($fixture));
+        $this->assertInstanceOf(SimpleObject::class, $objects->get($fixture));
+
     }
 }
