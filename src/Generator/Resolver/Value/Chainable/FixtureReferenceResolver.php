@@ -17,9 +17,6 @@ use Nelmio\Alice\Definition\Fixture\FixtureId;
 use Nelmio\Alice\Definition\Object\CompleteObject;
 use Nelmio\Alice\Definition\Value\FixtureReferenceValue;
 use Nelmio\Alice\Definition\ValueInterface;
-use Nelmio\Alice\Throwable\Exception\Generator\ObjectGenerator\ObjectGeneratorNotFoundExceptionFactory;
-use Nelmio\Alice\Throwable\Exception\Generator\Resolver\FixtureNotFoundExceptionFactory;
-use Nelmio\Alice\Throwable\Exception\Generator\Resolver\UnresolvableValueException;
 use Nelmio\Alice\FixtureIdInterface;
 use Nelmio\Alice\FixtureInterface;
 use Nelmio\Alice\Generator\GenerationContext;
@@ -29,6 +26,10 @@ use Nelmio\Alice\Generator\ResolvedFixtureSet;
 use Nelmio\Alice\Generator\ResolvedValueWithFixtureSet;
 use Nelmio\Alice\Generator\Resolver\Value\ChainableValueResolverInterface;
 use Nelmio\Alice\IsAServiceTrait;
+use Nelmio\Alice\Throwable\Exception\Generator\ObjectGenerator\ObjectGeneratorNotFoundExceptionFactory;
+use Nelmio\Alice\Throwable\Exception\Generator\Resolver\CircularReferenceException;
+use Nelmio\Alice\Throwable\Exception\Generator\Resolver\FixtureNotFoundExceptionFactory;
+use Nelmio\Alice\Throwable\Exception\Generator\Resolver\UnresolvableValueException;
 use Nelmio\Alice\Throwable\Exception\Generator\Resolver\UnresolvableValueExceptionFactory;
 
 final class FixtureReferenceResolver implements ChainableValueResolverInterface, ObjectGeneratorAwareInterface
@@ -39,6 +40,11 @@ final class FixtureReferenceResolver implements ChainableValueResolverInterface,
      * @var ObjectGeneratorInterface|null
      */
     private $generator;
+
+    /**
+     * @var array
+     */
+    private $incompleteObjects = [];
 
     public function __construct(ObjectGeneratorInterface $generator = null)
     {
@@ -74,8 +80,7 @@ final class FixtureReferenceResolver implements ChainableValueResolverInterface,
         ResolvedFixtureSet $fixtureSet,
         array $scope,
         GenerationContext $context
-    ): ResolvedValueWithFixtureSet
-    {
+    ): ResolvedValueWithFixtureSet {
         if (null === $this->generator) {
             throw ObjectGeneratorNotFoundExceptionFactory::createUnexpectedCall(__METHOD__);
         }
@@ -102,23 +107,24 @@ final class FixtureReferenceResolver implements ChainableValueResolverInterface,
 
     /**
      * @param FixtureIdInterface|FixtureInterface $referredFixture
-     * @param string                              $referredFixtureId
-     * @param ResolvedFixtureSet                  $fixtureSet
-     * @param GenerationContext                   $context
-     *
-     * @return ResolvedValueWithFixtureSet
+     * @param bool|null                           $passIncompleteObject
      */
     private function resolveReferredFixture(
         FixtureIdInterface $referredFixture,
         string $referredFixtureId,
         ResolvedFixtureSet $fixtureSet,
-        GenerationContext $context
-    ): ResolvedValueWithFixtureSet
-    {
+        GenerationContext $context,
+        bool $passIncompleteObject = null
+    ): ResolvedValueWithFixtureSet {
         if ($fixtureSet->getObjects()->has($referredFixture)) {
             $referredObject = $fixtureSet->getObjects()->get($referredFixture);
 
-            if ($referredObject instanceof CompleteObject || false === $context->needsCompleteGeneration()) {
+            if ($referredObject instanceof CompleteObject
+                || $passIncompleteObject
+                || array_key_exists($referredFixtureId, $this->incompleteObjects)
+            ) {
+                $this->incompleteObjects[$referredFixtureId] = true;
+
                 return new ResolvedValueWithFixtureSet(
                     $referredObject->getInstance(),
                     $fixtureSet
@@ -127,17 +133,39 @@ final class FixtureReferenceResolver implements ChainableValueResolverInterface,
         }
 
         // Object is either not completely generated or has not been generated at all yet
+        // Attempts to generate the fixture completely
         if (false === $referredFixture instanceof FixtureInterface) {
             throw FixtureNotFoundExceptionFactory::create($referredFixtureId);
         }
 
-        $context->markIsResolvingFixture($referredFixtureId);
-        $objects = $this->generator->generate($referredFixture, $fixtureSet, $context);
-        $fixtureSet =  $fixtureSet->withObjects($objects);
+        try {
+            $needsCompleteGeneration = $context->needsCompleteGeneration();
 
-        return new ResolvedValueWithFixtureSet(
-            $fixtureSet->getObjects()->get($referredFixture)->getInstance(),
-            $fixtureSet
-        );
+            if (!$passIncompleteObject) {
+                $context->markAsNeedsCompleteGeneration();
+            }
+
+            $context->markIsResolvingFixture($referredFixtureId);
+            $objects = $this->generator->generate($referredFixture, $fixtureSet, $context);
+            $fixtureSet =  $fixtureSet->withObjects($objects);
+
+            if (false === $needsCompleteGeneration) {
+                $context->unmarkAsNeedsCompleteGeneration();
+            }
+
+            return new ResolvedValueWithFixtureSet(
+                $fixtureSet->getObjects()->get($referredFixture)->getInstance(),
+                $fixtureSet
+            );
+        } catch (CircularReferenceException $exception) {
+            if (false === $needsCompleteGeneration && null !== $passIncompleteObject) {
+                throw $exception;
+            }
+
+            $context->unmarkAsNeedsCompleteGeneration();
+
+            // Could not completely generate the fixtures, fallback to generating an incomplete object
+            return $this->resolveReferredFixture($referredFixture, $referredFixtureId, $fixtureSet, $context, true);
+        }
     }
 }

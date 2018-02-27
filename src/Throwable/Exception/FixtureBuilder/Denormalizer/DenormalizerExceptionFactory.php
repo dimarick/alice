@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Nelmio\Alice\Throwable\Exception\FixtureBuilder\Denormalizer;
 
@@ -21,6 +21,11 @@ final class DenormalizerExceptionFactory
     public static function createForUndenormalizableConstructor(): UnexpectedValueException
     {
         return new UnexpectedValueException('Could not denormalize the given constructor.');
+    }
+
+    public static function createForUndenormalizableFactory(): UnexpectedValueException
+    {
+        return new UnexpectedValueException('Could not denormalize the given factory.');
     }
 
     public static function createForUnparsableValue(string $value, int $code = 0, \Throwable $previous): UnexpectedValueException
@@ -60,5 +65,9 @@ final class DenormalizerExceptionFactory
     public static function createForInvalidScopeForUniqueValue(): InvalidScopeException
     {
         return new InvalidScopeException('Cannot bind a unique value scope to a temporary fixture.');
+    }
+
+    private function __construct()
+    {
     }
 }

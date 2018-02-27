@@ -9,11 +9,14 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\LexerInterface;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\ReferenceEscaperLexer
@@ -25,12 +28,9 @@ class ReferenceEscaperLexerTest extends TestCase
         $this->assertTrue(is_a(ReferenceEscaperLexer::class, LexerInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new ReferenceEscaperLexer(new FakeLexer());
+        $this->assertFalse((new ReflectionClass(ReferenceEscaperLexer::class))->isCloneable());
     }
 
     /**

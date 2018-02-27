@@ -17,10 +17,10 @@ use Nelmio\Alice\Definition\Object\CompleteObject;
 use Nelmio\Alice\FixtureInterface;
 use Nelmio\Alice\Generator\CallerInterface;
 use Nelmio\Alice\Generator\GenerationContext;
+use Nelmio\Alice\Generator\HydratorInterface;
 use Nelmio\Alice\Generator\InstantiatorInterface;
 use Nelmio\Alice\Generator\ObjectGeneratorAwareInterface;
 use Nelmio\Alice\Generator\ObjectGeneratorInterface;
-use Nelmio\Alice\Generator\HydratorInterface;
 use Nelmio\Alice\Generator\ResolvedFixtureSet;
 use Nelmio\Alice\Generator\ValueResolverAwareInterface;
 use Nelmio\Alice\Generator\ValueResolverInterface;
@@ -80,8 +80,7 @@ final class SimpleObjectGenerator implements ObjectGeneratorInterface
         FixtureInterface $fixture,
         ResolvedFixtureSet $fixtureSet,
         GenerationContext $context
-    ): ObjectBag
-    {
+    ): ObjectBag {
         if ($context->isFirstPass()) {
             $fixtureSet = $this->instantiator->instantiate($fixture, $fixtureSet, $context);
 
@@ -99,8 +98,7 @@ final class SimpleObjectGenerator implements ObjectGeneratorInterface
         FixtureInterface $fixture,
         ResolvedFixtureSet $set,
         GenerationContext $context
-    ): ResolvedFixtureSet
-    {
+    ): ResolvedFixtureSet {
         $instantiatedObject = $set->getObjects()->get($fixture);
 
         $set = $this->hydrator->hydrate($instantiatedObject, $set, $context);

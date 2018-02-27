@@ -13,28 +13,62 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Loader;
 
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\SimpleDenormalizer as NelmioSimpleDenormalizer;
 use Faker\Factory as FakerGeneratorFactory;
 use Faker\Generator as FakerGenerator;
 use Nelmio\Alice\DataLoaderInterface;
+use Nelmio\Alice\Faker\Provider\AliceProvider;
+use Nelmio\Alice\FileLoaderInterface;
+use Nelmio\Alice\FileLocator\DefaultFileLocator;
+use Nelmio\Alice\FilesLoaderInterface;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\CollectionDenormalizerWithTemporaryFixture;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\NullListNameDenormalizer;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\NullRangeNameDenormalizer;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\SimpleCollectionDenormalizer;
-use Nelmio\Alice\Generator\Resolver\Value\Chainable\FixtureMethodCallReferenceResolver;
-use Nelmio\Alice\Generator\Resolver\Value\Chainable\FunctionCallArgumentResolver;
-use Nelmio\Alice\Generator\Resolver\Value\Chainable\PhpFunctionCallValueResolver;
-use Nelmio\Alice\Throwable\Exception\BadMethodCallExceptionFactory;
-use Nelmio\Alice\Faker\Provider\AliceProvider;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\FixtureDenormalizerInterface;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\FixtureDenormalizerRegistry;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SimpleFixtureBagDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Arguments\SimpleArgumentsDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\ArgumentsDenormalizerInterface;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Calls\CallsWithFlagsDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Calls\FunctionDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Calls\MethodFlagHandler\ConfiguratorFlagHandler;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Calls\MethodFlagHandler\OptionalFlagHandler;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\CallsDenormalizerInterface;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Constructor\ConstructorDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Constructor\FactoryDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Constructor\LegacyConstructorDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\ConstructorDenormalizerInterface;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Property\SimplePropertyDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\PropertyDenormalizerInterface;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\SimpleSpecificationsDenormalizer;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Value\SimpleValueDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Value\UniqueValueDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\ValueDenormalizerInterface;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\FixtureBagDenormalizerInterface;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\Chainable\ConfiguratorFlagParser;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\Chainable\ExtendFlagParser;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\Chainable\OptionalFlagParser;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\Chainable\TemplateFlagParser;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\Chainable\UniqueFlagParser;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\ElementFlagParser;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\FlagParserRegistry;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParserInterface;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\Parameter\SimpleParameterBagDenormalizer;
+use Nelmio\Alice\FixtureBuilder\Denormalizer\SimpleDenormalizer;
+use Nelmio\Alice\FixtureBuilder\DenormalizerInterface;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\EmptyValueLexer;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\FunctionLexer;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\GlobalPatternsLexer;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\ReferenceEscaperLexer;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\ReferenceLexer;
+use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\StringThenReferenceLexer;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\SubPatternsLexer;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\LexerInterface;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\FunctionFixtureReferenceParser;
+use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\SimpleParser;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\StringMergerParser;
+use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\ArgumentEscaper;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\DynamicArrayTokenParser;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\EscapedValueTokenParser;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\FixtureListReferenceTokenParser;
@@ -50,44 +84,28 @@ use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\StringArrayTokenParser;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\StringTokenParser;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\TolerantFunctionTokenParser;
+use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\VariableReferenceTokenParser;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\VariableTokenParser;
-use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\SimpleParser;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\WildcardReferenceTokenParser;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\TokenParserRegistry;
-use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\ParserInterface as ExpressionLanguageParserInterface;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParserInterface;
-use Nelmio\Alice\FileLocator\DefaultFileLocator;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\FixtureDenormalizerInterface;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\FixtureDenormalizerRegistry;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SimpleFixtureBagDenormalizer;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Arguments\SimpleArgumentsDenormalizer;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\ArgumentsDenormalizerInterface;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Calls\OptionalCallsDenormalizer;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\CallsDenormalizerInterface;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Constructor\ConstructorWithCallerDenormalizer;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Constructor\SimpleConstructorDenormalizer;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\ConstructorDenormalizerInterface;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Property\SimplePropertyDenormalizer;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\PropertyDenormalizerInterface;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\SimpleSpecificationsDenormalizer;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\Value\UniqueValueDenormalizer;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer\ValueDenormalizerInterface;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FixtureBagDenormalizerInterface;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\Chainable\ExtendFlagParser;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\Chainable\OptionalFlagParser;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\Chainable\TemplateFlagParser;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\Chainable\UniqueFlagParser;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\ElementFlagParser;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\FlagParserRegistry;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParserInterface;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Parameter\SimpleParameterBagDenormalizer;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\SimpleDenormalizer;
-use Nelmio\Alice\FixtureBuilder\DenormalizerInterface;
+use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\ParserInterface as ExpressionLanguageParserInterface;
 use Nelmio\Alice\FixtureBuilder\SimpleBuilder;
+use Nelmio\Alice\FixtureBuilderInterface;
+use Nelmio\Alice\Generator\Caller\CallProcessorInterface;
+use Nelmio\Alice\Generator\Caller\CallProcessorRegistry;
+use Nelmio\Alice\Generator\Caller\Chainable\ConfiguratorMethodCallProcessor;
+use Nelmio\Alice\Generator\Caller\Chainable\MethodCallWithReferenceProcessor;
+use Nelmio\Alice\Generator\Caller\Chainable\OptionalMethodCallProcessor;
+use Nelmio\Alice\Generator\Caller\Chainable\SimpleMethodCallProcessor;
 use Nelmio\Alice\Generator\Caller\SimpleCaller;
 use Nelmio\Alice\Generator\CallerInterface;
+use Nelmio\Alice\Generator\DoublePassGenerator;
+use Nelmio\Alice\Generator\FixtureSetResolverInterface;
 use Nelmio\Alice\Generator\Hydrator\Property\SymfonyPropertyAccessorHydrator;
 use Nelmio\Alice\Generator\Hydrator\PropertyHydratorInterface;
+use Nelmio\Alice\Generator\Hydrator\SimpleHydrator;
+use Nelmio\Alice\Generator\HydratorInterface;
 use Nelmio\Alice\Generator\Instantiator\Chainable\NoCallerMethodCallInstantiator;
 use Nelmio\Alice\Generator\Instantiator\Chainable\NoMethodCallInstantiator;
 use Nelmio\Alice\Generator\Instantiator\Chainable\NullConstructorInstantiator;
@@ -98,23 +116,32 @@ use Nelmio\Alice\Generator\Instantiator\InstantiatorResolver;
 use Nelmio\Alice\Generator\InstantiatorInterface;
 use Nelmio\Alice\Generator\ObjectGenerator\CompleteObjectGenerator;
 use Nelmio\Alice\Generator\ObjectGenerator\SimpleObjectGenerator;
-use Nelmio\Alice\Generator\Hydrator\SimpleHydrator;
-use Nelmio\Alice\Generator\HydratorInterface;
+use Nelmio\Alice\Generator\ObjectGeneratorInterface;
 use Nelmio\Alice\Generator\Resolver\Fixture\TemplateFixtureBagResolver;
 use Nelmio\Alice\Generator\Resolver\FixtureSet\RemoveConflictingObjectsResolver;
-use Nelmio\Alice\Generator\Resolver\Parameter\RemoveConflictingParametersParameterBagResolver;
 use Nelmio\Alice\Generator\Resolver\FixtureSet\SimpleFixtureSetResolver;
+use Nelmio\Alice\Generator\Resolver\Parameter\Chainable\ArrayParameterResolver;
+use Nelmio\Alice\Generator\Resolver\Parameter\Chainable\RecursiveParameterResolver;
+use Nelmio\Alice\Generator\Resolver\Parameter\Chainable\StaticParameterResolver;
+use Nelmio\Alice\Generator\Resolver\Parameter\Chainable\StringParameterResolver;
+use Nelmio\Alice\Generator\Resolver\Parameter\ParameterResolverRegistry;
+use Nelmio\Alice\Generator\Resolver\Parameter\RemoveConflictingParametersParameterBagResolver;
+use Nelmio\Alice\Generator\Resolver\Parameter\SimpleParameterBagResolver;
+use Nelmio\Alice\Generator\Resolver\ParameterBagResolverInterface;
 use Nelmio\Alice\Generator\Resolver\UniqueValuesPool;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\ArrayValueResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\DynamicArrayValueResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\EvaluatedValueResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\FakerFunctionCallValueResolver;
+use Nelmio\Alice\Generator\Resolver\Value\Chainable\FixtureMethodCallReferenceResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\FixturePropertyReferenceResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\FixtureReferenceResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\FixtureWildcardReferenceResolver;
+use Nelmio\Alice\Generator\Resolver\Value\Chainable\FunctionCallArgumentResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\ListValueResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\OptionalValueResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\ParameterValueResolver;
+use Nelmio\Alice\Generator\Resolver\Value\Chainable\PhpFunctionCallValueResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\SelfFixtureReferenceResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\UniqueValueResolver;
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\UnresolvedFixtureReferenceIdResolver;
@@ -122,28 +149,17 @@ use Nelmio\Alice\Generator\Resolver\Value\Chainable\ValueForCurrentValueResolver
 use Nelmio\Alice\Generator\Resolver\Value\Chainable\VariableValueResolver;
 use Nelmio\Alice\Generator\Resolver\Value\ValueResolverRegistry;
 use Nelmio\Alice\Generator\ValueResolverInterface;
+use Nelmio\Alice\GeneratorInterface;
+use Nelmio\Alice\IsAServiceTrait;
+use Nelmio\Alice\ObjectSet;
 use Nelmio\Alice\Parser\Chainable\PhpParser;
 use Nelmio\Alice\Parser\Chainable\YamlParser;
 use Nelmio\Alice\Parser\IncludeProcessor\DefaultIncludeProcessor;
 use Nelmio\Alice\Parser\ParserRegistry;
 use Nelmio\Alice\Parser\RuntimeCacheParser;
 use Nelmio\Alice\ParserInterface;
-use Nelmio\Alice\FixtureBuilderInterface;
-use Nelmio\Alice\Generator\ObjectGeneratorInterface;
-use Nelmio\Alice\Generator\Resolver\Parameter\Chainable\ArrayParameterResolver;
-use Nelmio\Alice\Generator\Resolver\Parameter\SimpleParameterBagResolver;
-use Nelmio\Alice\Generator\Resolver\Parameter\ParameterResolverRegistry;
-use Nelmio\Alice\Generator\Resolver\Parameter\Chainable\RecursiveParameterResolver;
-use Nelmio\Alice\Generator\Resolver\Parameter\Chainable\StaticParameterResolver;
-use Nelmio\Alice\Generator\Resolver\Parameter\Chainable\StringParameterResolver;
-use Nelmio\Alice\Generator\FixtureSetResolverInterface;
-use Nelmio\Alice\Generator\DoublePassGenerator;
-use Nelmio\Alice\GeneratorInterface;
-use Nelmio\Alice\FileLoaderInterface;
-use Nelmio\Alice\IsAServiceTrait;
-use Nelmio\Alice\ObjectSet;
-use Nelmio\Alice\Generator\Resolver\ParameterBagResolverInterface;
 use Nelmio\Alice\PropertyAccess\StdPropertyAccessor;
+use Nelmio\Alice\Throwable\Exception\BadMethodCallExceptionFactory;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Yaml\Parser as SymfonyYamlParser;
@@ -152,13 +168,16 @@ use Symfony\Component\Yaml\Parser as SymfonyYamlParser;
  * Loader implementation made to be usable without any dependency injection for quick and easy usage. For more advanced
  * usages, use {@see \Nelmio\Alice\Loader\SimpleFileLoader} instead or implement your own loader.
  *
+ * WARNING: because this class is wrapping the whole configuration, the BC break policy is not fully ensured here. Not
+ * methods can be added in minor versions, which could make your application break if you are extending this class and
+ * have a method with the same name.
+ *
  * @method DataLoaderInterface getDataLoader()
  * @method FileLoaderInterface getFileLoader()
- *
+ * @method FilesLoaderInterface getFilesLoader()
  * @method FixtureBuilderInterface getFixtureBuilder()
  * @method GeneratorInterface getGenerator()
  * @method ParserInterface getParser()
- *
  * @method DenormalizerInterface getDenormalizer()
  * @method FixtureBagDenormalizerInterface getFixtureBagDenormalizer
  * @method FixtureDenormalizerInterface getFixtureDenormalizer()
@@ -168,27 +187,27 @@ use Symfony\Component\Yaml\Parser as SymfonyYamlParser;
  * @method CallsDenormalizerInterface getCallsDenormalizer()
  * @method ArgumentsDenormalizerInterface getArgumentsDenormalizer()
  * @method ValueDenormalizerInterface getValueDenormalizer()
- *
  * @method ExpressionLanguageParserInterface getExpressionLanguageParser()
  * @method LexerInterface getLexer()
  * @method TokenParserInterface getExpressionLanguageTokenParser()
- *
  * @method ObjectGeneratorInterface getObjectGenerator()
- *
  * @method FixtureSetResolverInterface getFixtureSetResolver()
  * @method ParameterBagResolverInterface getParameterResolver()
  * @method ValueResolverInterface getValueResolver()
  * @method FakerGenerator getFakerGenerator()
- *
  * @method InstantiatorInterface getInstantiator()
  * @method HydratorInterface getHydrator()
  * @method PropertyHydratorInterface getPropertyHydrator()
  * @method PropertyAccessorInterface getPropertyAccessor()
  * @method CallerInterface getCaller()
+ * @method CallProcessorInterface getCallProcessor()
  */
-class NativeLoader implements FileLoaderInterface, DataLoaderInterface
+class NativeLoader implements FilesLoaderInterface, FileLoaderInterface, DataLoaderInterface
 {
     use IsAServiceTrait;
+
+    /** @protected */
+    const LOCALE = 'en_US';
 
     private $previous = '';
 
@@ -208,6 +227,11 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
     private $fileLoader;
 
     /**
+     * @var FilesLoaderInterface
+     */
+    private $filesLoader;
+
+    /**
      * @var DataLoaderInterface
      */
     private $dataLoader;
@@ -217,6 +241,15 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
         $this->fakerGenerator = (null === $fakerGenerator) ? $this->getFakerGenerator() : $fakerGenerator;
         $this->dataLoader = $this->getDataLoader();
         $this->fileLoader = $this->getFileLoader();
+        $this->filesLoader = $this->getFilesLoader();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function loadFiles(array $files, array $parameters = [], array $objects = []): ObjectSet
+    {
+        return $this->filesLoader->loadFiles($files, $parameters, $objects);
     }
 
     /**
@@ -246,6 +279,14 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
     protected function createFileLoader(): FileLoaderInterface
     {
         return new SimpleFileLoader(
+            $this->getParser(),
+            $this->dataLoader
+        );
+    }
+
+    protected function createFilesLoader(): FilesLoaderInterface
+    {
+        return new SimpleFilesLoader(
             $this->getParser(),
             $this->dataLoader
         );
@@ -303,7 +344,7 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
         return new FixtureDenormalizerRegistry(
             $this->getFlagParser(),
             [
-                new \Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\SimpleDenormalizer(
+                new NelmioSimpleDenormalizer(
                     new SimpleSpecificationsDenormalizer(
                         $this->getConstructorDenormalizer(),
                         $this->getPropertyDenormalizer(),
@@ -327,6 +368,7 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
     protected function createFlagParser(): FlagParserInterface
     {
         $registry = new FlagParserRegistry([
+            new ConfiguratorFlagParser(),
             new ExtendFlagParser(),
             new OptionalFlagParser(),
             new TemplateFlagParser(),
@@ -338,9 +380,12 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
 
     protected function createConstructorDenormalizer(): ConstructorDenormalizerInterface
     {
-        return new ConstructorWithCallerDenormalizer(
-            new SimpleConstructorDenormalizer(
+        return new LegacyConstructorDenormalizer(
+            new ConstructorDenormalizer(
                 $this->getArgumentsDenormalizer()
+            ),
+            new FactoryDenormalizer(
+                $this->getCallsDenormalizer()
             ),
             $this->getArgumentsDenormalizer()
         );
@@ -355,8 +400,14 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
 
     protected function createCallsDenormalizer(): CallsDenormalizerInterface
     {
-        return new OptionalCallsDenormalizer(
-            $this->getArgumentsDenormalizer()
+        return new CallsWithFlagsDenormalizer(
+            new FunctionDenormalizer(
+                $this->getArgumentsDenormalizer()
+            ),
+            [
+                new ConfiguratorFlagHandler(),
+                new OptionalFlagHandler(),
+            ]
         );
     }
 
@@ -394,8 +445,10 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
             new ReferenceEscaperLexer(
                 new GlobalPatternsLexer(
                     new FunctionLexer(
-                        new SubPatternsLexer(
-                            new ReferenceLexer()
+                        new StringThenReferenceLexer(
+                            new SubPatternsLexer(
+                                new ReferenceLexer()
+                            )
                         )
                     )
                 )
@@ -405,6 +458,8 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
 
     protected function createExpressionLanguageTokenParser(): TokenParserInterface
     {
+        $argumentEscaper = new ArgumentEscaper();
+
         return new TokenParserRegistry([
             new DynamicArrayTokenParser(),
             new EscapedValueTokenParser(),
@@ -412,18 +467,19 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
             new FixtureMethodReferenceTokenParser(),
             new FixtureRangeReferenceTokenParser(),
             new IdentityTokenParser(
-                new FunctionTokenParser()
+                new FunctionTokenParser($argumentEscaper)
             ),
             new MethodReferenceTokenParser(),
             new OptionalTokenParser(),
             new ParameterTokenParser(),
             new PropertyReferenceTokenParser(),
+            new VariableReferenceTokenParser(),
             new SimpleReferenceTokenParser(),
             new StringArrayTokenParser(),
-            new StringTokenParser(),
+            new StringTokenParser($argumentEscaper),
             new TolerantFunctionTokenParser(
                 new IdentityTokenParser(
-                    new FunctionTokenParser()
+                    new FunctionTokenParser($argumentEscaper)
                 )
             ),
             new VariableTokenParser(),
@@ -511,8 +567,9 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
 
     protected function createFakerGenerator(): FakerGenerator
     {
-        $generator = FakerGeneratorFactory::create();
+        $generator = FakerGeneratorFactory::create(self::LOCALE);
         $generator->addProvider(new AliceProvider());
+        $generator->seed($this->getSeed());
 
         return $generator;
     }
@@ -556,7 +613,28 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
 
     protected function createCaller(): CallerInterface
     {
-        return new SimpleCaller($this->getValueResolver());
+        return new SimpleCaller($this->getCallProcessor(), $this->getValueResolver());
+    }
+
+    protected function createCallProcessor(): CallProcessorInterface
+    {
+        return new CallProcessorRegistry([
+            new ConfiguratorMethodCallProcessor(),
+            new MethodCallWithReferenceProcessor(),
+            new OptionalMethodCallProcessor(),
+            new SimpleMethodCallProcessor(),
+        ]);
+    }
+
+    /**
+     * Seed used to generate random data. The seed is passed to the random number generator, so calling the a script
+     * twice with the same seed produces the same results.
+     *
+     * @return int|null
+     */
+    protected function getSeed()
+    {
+        return 1;
     }
 
     public function __call(string $method, array $arguments)
@@ -573,6 +651,7 @@ class NativeLoader implements FileLoaderInterface, DataLoaderInterface
         if ($realMethod === $this->previous) {
             throw BadMethodCallExceptionFactory::createForUnknownMethod($method);
         }
+
         $this->previous = $realMethod;
 
         $service = $this->$realMethod(...$arguments);

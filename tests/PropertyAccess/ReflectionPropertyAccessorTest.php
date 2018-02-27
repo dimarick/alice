@@ -9,13 +9,23 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+/*
+ * This file is part of the Alice package.
+ *
+ * (c) Nelmio <hello@nelm.io>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nelmio\Alice\PropertyAccess;
 
 use Nelmio\Alice\Entity\DummyWithPrivateProperty;
 use Nelmio\Alice\Entity\DummyWithPublicProperty;
-use Nelmio\Alice\Symfony\PropertyAccess\FakePropertyAccessor;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
@@ -29,12 +39,9 @@ class ReflectionPropertyAccessorTest extends TestCase
         $this->assertTrue(is_a(ReflectionPropertyAccessor::class, PropertyAccessorInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new ReflectionPropertyAccessor(new FakePropertyAccessor());
+        $this->assertFalse((new ReflectionClass(ReflectionPropertyAccessor::class))->isCloneable());
     }
 
     public function testSetValueOnNoSuchPropertyException()
@@ -50,7 +57,6 @@ class ReflectionPropertyAccessorTest extends TestCase
             ->setValue($object, $property, $value)
             ->willThrow(NoSuchPropertyException::class)
         ;
-
         /** @var PropertyAccessorInterface $decoratedAccessor */
         $decoratedAccessor = $decoratedAccessorProphecy->reveal();
 
@@ -58,6 +64,78 @@ class ReflectionPropertyAccessorTest extends TestCase
         $accessor->setValue($object, $property, $value);
 
         $this->assertEquals($expected, $object);
+    }
+
+    /**
+     * @expectedException \Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException
+     * @expectedExceptionMessage Cannot set property "unknown".
+     */
+    public function testThrowsAnOriginalExceptionIfSetValueForANonExistentProperty()
+    {
+        $property = 'unknown';
+        $object = new DummyWithPrivateProperty();
+        $value = 'bar';
+
+        $decoratedAccessorProphecy = $this->prophesize(PropertyAccessorInterface::class);
+        $decoratedAccessorProphecy
+            ->setValue($object, $property, $value)
+            ->willThrow(new NoSuchPropertyException("Cannot set property \"$property\"."))
+        ;
+
+        /** @var PropertyAccessorInterface $decoratedAccessor */
+        $decoratedAccessor = $decoratedAccessorProphecy->reveal();
+
+        $accessor = new ReflectionPropertyAccessor($decoratedAccessor);
+
+        $accessor->setValue($object, $property, $value);
+    }
+
+    /**
+     * @expectedException \Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException
+     * @expectedExceptionMessage Cannot set property "unknown".
+     */
+    public function testThrowsAnOriginalExceptionIfSetValueForANonExistentPropertyOnNonObject()
+    {
+        $property = 'unknown';
+        $object = [];
+        $value = 'bar';
+
+        $decoratedAccessorProphecy = $this->prophesize(PropertyAccessorInterface::class);
+        $decoratedAccessorProphecy
+            ->setValue($object, $property, $value)
+            ->willThrow(new NoSuchPropertyException("Cannot set property \"$property\"."))
+        ;
+
+        /** @var PropertyAccessorInterface $decoratedAccessor */
+        $decoratedAccessor = $decoratedAccessorProphecy->reveal();
+
+        $accessor = new ReflectionPropertyAccessor($decoratedAccessor);
+
+        $accessor->setValue($object, $property, $value);
+    }
+
+    /**
+     * @expectedException \Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException
+     * @expectedExceptionMessage Cannot set property "staticVal".
+     */
+    public function testThrowsAnOriginalExceptionIfSetValueForANonExistentPropertyIsStatic()
+    {
+        $property = 'staticVal';
+        $object = new DummyWithPrivateProperty();
+        $value = 'bar';
+
+        $decoratedAccessorProphecy = $this->prophesize(PropertyAccessorInterface::class);
+        $decoratedAccessorProphecy
+            ->setValue($object, $property, $value)
+            ->willThrow(new NoSuchPropertyException("Cannot set property \"$property\"."))
+        ;
+
+        /** @var PropertyAccessorInterface $decoratedAccessor */
+        $decoratedAccessor = $decoratedAccessorProphecy->reveal();
+
+        $accessor = new ReflectionPropertyAccessor($decoratedAccessor);
+
+        $accessor->setValue($object, $property, $value);
     }
 
     public function testSetValueWithTheDecoratedAccessorWhenPossible()
@@ -118,6 +196,29 @@ class ReflectionPropertyAccessorTest extends TestCase
     {
         $property = 'foo';
         $object = new DummyWithPrivateProperty();
+
+        $decoratedAccessorProphecy = $this->prophesize(PropertyAccessorInterface::class);
+        $decoratedAccessorProphecy
+            ->getValue($object, $property)
+            ->willThrow(new NoSuchPropertyException("Cannot read property \"$property\"."))
+        ;
+
+        /** @var PropertyAccessorInterface $decoratedAccessor */
+        $decoratedAccessor = $decoratedAccessorProphecy->reveal();
+
+        $accessor = new ReflectionPropertyAccessor($decoratedAccessor);
+
+        $accessor->getValue($object, $property);
+    }
+
+    /**
+     * @expectedException \Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException
+     * @expectedExceptionMessage Cannot read property "foo".
+     */
+    public function testThrowsAnOriginalExceptionIfPropertyDoesNotExistOnNonObject()
+    {
+        $property = 'foo';
+        $object = [];
 
         $decoratedAccessorProphecy = $this->prophesize(PropertyAccessorInterface::class);
         $decoratedAccessorProphecy

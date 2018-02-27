@@ -1,84 +1,35 @@
-### 3.0.0 (WIP)
-
-### 3.0.0-beta.4 (2017-03-19)
+### 3.1.0 (2017-10-22)
 
 ### Features
-- Implements method callers (#666)
-- Add method call reference resolver (#669)
-- Make NativeLoader non-final and changed its API (#681)
-- Make parameters accessible in identity (#698)
+
+* Add new multifile loader (#821)
 
 ### Bugfixes
-- Fix edge case on OptionalValueResolver (#671)
-- Fix escaping of the percent sign (#687)
-- Fix usage of underscore in the function name (#702)
 
-
-### 3.0.0-beta.3 (2016-12-16)
-
-### Features
-- Add a context cache (#656)
-
-### Bugfixes
-- Fix wildcard resolver cache (#657)
-- Fix usage of dynamic array with functions (#655)
-
-
-### 3.0.0-beta.2 (2016-12-02)
-
-### Features
-- Add a Faker provider to cast values (#622)
-- Allow to whitelist some PHP native functions (#640)
-
-### Bugfixes
-- Fix optional flag boundaries (allow extremums `0` and `100`) (#623)
-- Lowered dynamic array quantifier minimal value (allow `0` and `1`) (#624)
-- Fix unique scope for arrays (#634)
-- Fix function which contains numerical characters tokenization (#649)
+* Make loaders aliases public (#813)
+* Fix PHPUnit Bridge deprecation (#818)
+* Update unclonable trait (#820)
 
 ### Other changes highlight
-- Rework blackfire scripts (#633) 
-- Replace the exception thrown for unclonable tests (#637)
-- Symfony Bundle configuration tweaks (#641)
+
+* Add Project name in trigger error deprecation notices (#810)
+* Makefile tweaks & Update deps (#804)
+* Fix PHPUnit Bridge deprecation (#818)
+* Mention about `addXxx()` methods in upgrade path (#791)
 
 
-### 3.0.0-beta.1
+### 3.0.1 (2017-09-14)
 
-### Features
-- Better handling of references to inexistent fixtures (#592)
-- Automatically escape the `@` character in words (#593)
+### Bugfixes
 
-### Bugfix
-- Move PhpUnitBridge dependency to dev dependencies (#576)
-- Fix support for stdClass classes (#595)
-- Fix complete generation process (#596)
-- Fix FlagBag immutability (#614)
-- Fix UniqueValuesPool cached value check (#615)
-- Make ObjectBag more performant (#617)
-- Fix performance issues with Wildcard resolver (#618)
-- Fix usage of `$current` with identity (#619)
+* Combine string token followed by reference (#783)
 
-### Changes highlight
-- Harden tests (higher coverage and make them more robust thanks to Humbug) (#571, #590)
-- Simplify mutli-dep management with (#582)
-- Make testing easier (#583, #603)
-- Enforce strict types everywhere (#587)
-- Tag the Expression Language as internal (#600)
-- Add scenarios for profiling (#613, #616)
+### Other changes highlight
+
+* Fix the MakeFile (#790)
 
 
-### 3.0.0-beta.0 (2016-09-14)
-
-Main differences between 2.x and 3.x:
-
-The persistence layer has been removed
-Rewrite of the API to make it more extensible and more robust
-Change in the architecture to address some limitations found in 2.x
-More details on the architectural changes can be found
-[here](https://github.com/nelmio/alice/blob/master/CONTRIBUTING.md#architecture).
-
-
-### 2.3.0 (2017-03-18)
+### 3.0.0 (2017-09-12)
 
 ### Features
 
@@ -99,6 +50,172 @@ More details on the architectural changes can be found
 * Deprecate array hash uniqueness (#611)
 
 ### Bugfixes
+
+* Allow a fixture specs to be null (#767)
+
+
+#### Bugfixes
+
+* [DX] Properly handle missing specs (#774)
+* Fixed array function arguments (#775)
+* Fixed string arguments for function calls (#787)
+
+
+### 3.0.0-rc.1 (2017-06-29)
+
+#### Bugfixes
+* Attempts to resolved objects completely whenever possible (#756)
+
+
+### 3.0.0-rc.0 (2017-05-21)
+
+#### Features
+* Add a ReflectionPropertyAccessor to access to private and protected properties (#716)
+* Make Faker seed configurable (#726)
+* Add the factory keyword (#729)
+* Add support for immutable functions (#731)
+
+#### Bugfixes
+* Fix error on static factory with associative array (#714)
+* Fix a TypeError thrown when objected needed complete generation (#715)
+* Fix array value behaviour (#728)
+
+#### Other changes highlight
+* Move `deep_clone` in Alice namespace (#727)
+* Rework callers (#734)
+* Add Makefile script (#737)
+
+
+### 3.0.0-beta.5 (2017-04-11)
+
+#### Features
+* Prepare for PHPUnit 6 (#705)
+* Provide compatibility with PHP 7.2 (#706)
+
+
+#### Bugfixes
+* Create FixtureNotFoundException for resolver context (#713)
+
+
+### 3.0.0-beta.4 (2017-03-19)
+
+#### Features
+- Implements method callers (#666)
+- Add method call reference resolver (#669)
+- Make NativeLoader non-final and changed its API (#681)
+- Make parameters accessible in identity (#698)
+
+### Bugfixes
+- Fix edge case on OptionalValueResolver (#671)
+- Fix escaping of the percent sign (#687)
+- Fix usage of underscore in the function name (#702)
+
+
+### 3.0.0-beta.3 (2016-12-16)
+
+#### Features
+- Add a context cache (#656)
+
+#### Bugfixes
+- Fix wildcard resolver cache (#657)
+- Fix usage of dynamic array with functions (#655)
+
+
+### 3.0.0-beta.2 (2016-12-02)
+
+#### Features
+- Add a Faker provider to cast values (#622)
+- Allow to whitelist some PHP native functions (#640)
+
+#### Bugfixes
+- Fix optional flag boundaries (allow extremums `0` and `100`) (#623)
+- Lowered dynamic array quantifier minimal value (allow `0` and `1`) (#624)
+- Fix unique scope for arrays (#634)
+- Fix function which contains numerical characters tokenization (#649)
+
+#### Other changes highlight
+- Rework blackfire scripts (#633) 
+- Replace the exception thrown for unclonable tests (#637)
+- Symfony Bundle configuration tweaks (#641)
+
+
+### 3.0.0-beta.1
+
+### Features
+- Better handling of references to inexistent fixtures (#592)
+- Automatically escape the `@` character in words (#593)
+
+#### Bugfix
+- Move PhpUnitBridge dependency to dev dependencies (#576)
+- Fix support for stdClass classes (#595)
+- Fix complete generation process (#596)
+- Fix FlagBag immutability (#614)
+- Fix UniqueValuesPool cached value check (#615)
+- Make ObjectBag more performant (#617)
+- Fix performance issues with Wildcard resolver (#618)
+- Fix usage of `$current` with identity (#619)
+
+#### Changes highlight
+- Harden tests (higher coverage and make them more robust thanks to Humbug) (#571, #590)
+- Simplify mutli-dep management with (#582)
+- Make testing easier (#583, #603)
+- Enforce strict types everywhere (#587)
+- Tag the Expression Language as internal (#600)
+- Add scenarios for profiling (#613, #616)
+
+
+### 3.0.0-beta.0 (2016-09-14)
+
+Main differences between 2.x and 3.x:
+
+The persistence layer has been removed
+Rewrite of the API to make it more extensible and more robust
+Change in the architecture to address some limitations found in 2.x
+More details on the architectural changes can be found
+[here](https://github.com/nelmio/alice/blob/master/CONTRIBUTING.md#architecture).
+
+
+### 2.3.2 (2017-10-20)
+
+### Misc
+
+* Add tests to pin the behaviour in case of duplicate fixtures (#766)
+* Add vendor name in trigger error deprecation notices (#807)
+* Remove useless extra option (#817)
+* Make invalid scenarios as passing tests instead of skipped ones (#814)
+* Added tests to ensure setting a private/protected property is deprecated (#816)
+
+
+### 2.3.1 (2017-04-14)
+
+### Bugfixes
+
+* Prepare for PHPUnit 6 (#707)
+* Prepare for PHP 7.2 (#708)
+* Fixed required dependencies (#707)
+
+
+### 2.3.0 (2017-03-18)
+
+#### Features
+
+* Add support for Doctrine Inflector (#548)
+* Add support of embedded couchdb document (couchdb-odm) (#683)
+* Add range named builder (#693)
+
+#### Deprecations
+
+* Deprecate the usage of the local flag (#557)
+* Deprecate the usage of date strings (#559)
+* Deprecate optional values with floats (#564)
+* Deprecate references in quotes (#566)
+* Deprecate setting private or protected props directly (#607)
+* Deprecate usage of non PSR-1 compliant setters (#608)
+* Deprecate usage of inaccessible constructors (#609)
+* Deprecate calling methods (#610)
+* Deprecate array hash uniqueness (#611)
+
+#### Bugfixes
 
 * Remove usage of the deprecated method getMock (#558)
 * Document the change of behaviour of the identity function (#560)

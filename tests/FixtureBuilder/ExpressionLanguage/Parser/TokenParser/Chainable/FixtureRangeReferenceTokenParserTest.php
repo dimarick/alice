@@ -13,12 +13,13 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable;
 
-use PHPUnit\Framework\TestCase;
-use Nelmio\Alice\Definition\Value\ChoiceListValue;
+use Nelmio\Alice\Definition\Value\ArrayValue;
 use Nelmio\Alice\Definition\Value\FixtureReferenceValue;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\ChainableTokenParserInterface;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Token;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\TokenType;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\FixtureRangeReferenceTokenParser
@@ -30,12 +31,9 @@ class FixtureRangeReferenceTokenParserTest extends TestCase
         $this->assertTrue(is_a(FixtureRangeReferenceTokenParser::class, ChainableTokenParserInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new FixtureRangeReferenceTokenParser();
+        $this->assertFalse((new ReflectionClass(FixtureRangeReferenceTokenParser::class))->isCloneable());
     }
 
     public function testCanParseRangedReferencesTokens()
@@ -87,7 +85,7 @@ class FixtureRangeReferenceTokenParserTest extends TestCase
     public function testReturnsAChoiceListIfCanParseToken()
     {
         $token = new Token('@user{10..8}', new TokenType(TokenType::RANGE_REFERENCE_TYPE));
-        $expected = new ChoiceListValue([
+        $expected = new ArrayValue([
             new FixtureReferenceValue('user8'),
             new FixtureReferenceValue('user9'),
             new FixtureReferenceValue('user10'),

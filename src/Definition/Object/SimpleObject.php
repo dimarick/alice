@@ -32,23 +32,20 @@ final class SimpleObject implements ObjectInterface
     private $instance;
 
     /**
-     * @param string  $reference
      * @param object $instance
      */
-    public function __construct(string $reference, $instance)
+    public function __construct(string $id, $instance)
     {
         if (false === is_object($instance)) {
             throw TypeErrorFactory::createForObjectArgument($instance);
         }
         
-        $this->reference = $reference;
+        $this->reference = $id;
         $this->instance = $instance;
     }
 
     /**
-     * @param object $newInstance
-     *
-     * @return self
+     * @inheritdoc
      */
     public function withInstance($newInstance): self
     {

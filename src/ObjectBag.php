@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice;
 
+use ArrayIterator;
+use Countable;
+use IteratorAggregate;
 use Nelmio\Alice\Definition\Object\CompleteObject;
 use Nelmio\Alice\Definition\Object\SimpleObject;
 use Nelmio\Alice\Throwable\Exception\InvalidArgumentExceptionFactory;
@@ -22,7 +25,7 @@ use Nelmio\Alice\Throwable\Exception\ObjectNotFoundExceptionFactory;
 /**
  * Value object containing a list of objects.
  */
-final class ObjectBag implements \IteratorAggregate, \Countable
+final class ObjectBag implements IteratorAggregate, Countable
 {
     /**
      * @var ObjectInterface[]
@@ -38,6 +41,7 @@ final class ObjectBag implements \IteratorAggregate, \Countable
                 if ($id !== $object->getId()) {
                     throw InvalidArgumentExceptionFactory::createForReferenceKeyMismatch($id, $object->getId());
                 }
+
                 $this->objects[$id] = $object;
                 $this->array[$id] = $object->getInstance();
 
@@ -54,10 +58,6 @@ final class ObjectBag implements \IteratorAggregate, \Countable
     /**
      * Creates a new instance which will contain the given object. If an object with the same reference already exists,
      * it will be overridden by the new object.
-     * 
-     * @param ObjectInterface $object
-     *
-     * @return self
      */
     public function with(ObjectInterface $object): self
     {
@@ -72,14 +72,12 @@ final class ObjectBag implements \IteratorAggregate, \Countable
      * Creates a new instance which will no longer contain the given object.
      *
      * @param FixtureInterface|ObjectInterface $objectOrFixture
-     *
-     * @return self
      */
     public function without($objectOrFixture): self
     {
         $clone = clone $this;
-        unset($clone->objects[$objectOrFixture->getId()]);
-        unset($clone->array[$objectOrFixture->getId()]);
+        unset($clone->objects[$objectOrFixture->getId()], $clone->array[$objectOrFixture->getId()]);
+        
 
         return $clone;
     }
@@ -87,10 +85,8 @@ final class ObjectBag implements \IteratorAggregate, \Countable
     /**
      * Creates a new instance with the new objects. If objects with the same reference already exists, they will be
      * overridden by the new ones.
-     * 
-     * @param ObjectBag $objects
      *
-     * @return self
+     * @param ObjectBag $objects
      */
     public function mergeWith(self $objects): self
     {
@@ -109,11 +105,7 @@ final class ObjectBag implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @param FixtureIdInterface $fixture
-     *
      * @throws ObjectNotFoundException
-     * 
-     * @return ObjectInterface
      */
     public function get(FixtureIdInterface $fixture): ObjectInterface
     {
@@ -140,7 +132,7 @@ final class ObjectBag implements \IteratorAggregate, \Countable
      */
     public function getIterator()
     {
-        return new \ArrayIterator($this->objects);
+        return new ArrayIterator($this->objects);
     }
 
     public function toArray(): array

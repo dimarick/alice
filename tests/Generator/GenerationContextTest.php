@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Throwable\Exception\Generator\Context\CachedValueNotFound;
 use Nelmio\Alice\Throwable\Exception\Generator\Resolver\CircularReferenceException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Nelmio\Alice\Generator\GenerationContext
@@ -31,14 +31,27 @@ class GenerationContextTest extends TestCase
         $context->setToSecondPass();
         $this->assertFalse($context->isFirstPass());
         $this->assertFalse($context->needsCompleteGeneration());
+        $this->assertFalse($context->needsCallResult());
 
         $context->markAsNeedsCompleteGeneration();
         $this->assertFalse($context->isFirstPass());
         $this->assertTrue($context->needsCompleteGeneration());
+        $this->assertFalse($context->needsCallResult());
 
         $context->unmarkAsNeedsCompleteGeneration();
         $this->assertFalse($context->isFirstPass());
         $this->assertFalse($context->needsCompleteGeneration());
+        $this->assertFalse($context->needsCallResult());
+
+        $context->markRetrieveCallResult();
+        $this->assertFalse($context->isFirstPass());
+        $this->assertFalse($context->needsCompleteGeneration());
+        $this->assertTrue($context->needsCallResult());
+
+        $context->unmarkRetrieveCallResult();
+        $this->assertFalse($context->isFirstPass());
+        $this->assertFalse($context->needsCompleteGeneration());
+        $this->assertFalse($context->needsCallResult());
     }
 
     public function testThrowsAnExceptionWhenACircularReferenceIsDetected()

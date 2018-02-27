@@ -20,7 +20,7 @@ use Nelmio\Alice\Definition\ServiceReference\FixtureReference;
 
 /**
  * Helper to easily manipulate flags related to templates.
- * 
+ *
  * @private
  */
 final class Templating
@@ -59,7 +59,7 @@ final class Templating
 
     public function extendsFixtures(): bool
     {
-        return [] != $this->extends;
+        return [] !== $this->extends;
     }
 
     /**

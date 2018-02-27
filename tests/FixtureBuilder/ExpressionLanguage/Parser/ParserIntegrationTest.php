@@ -13,26 +13,28 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser;
 
-use PHPUnit\Framework\TestCase;
+use InvalidArgumentException;
 use Nelmio\Alice\Definition\MethodCall\IdentityFactory;
-use Nelmio\Alice\Definition\Value\ChoiceListValue;
+use Nelmio\Alice\Definition\Value\ArrayValue;
 use Nelmio\Alice\Definition\Value\DynamicArrayValue;
 use Nelmio\Alice\Definition\Value\FixtureMatchReferenceValue;
 use Nelmio\Alice\Definition\Value\FixtureMethodCallValue;
 use Nelmio\Alice\Definition\Value\FixturePropertyValue;
 use Nelmio\Alice\Definition\Value\FixtureReferenceValue;
 use Nelmio\Alice\Definition\Value\FunctionCallValue;
+use Nelmio\Alice\Definition\Value\ListValue;
 use Nelmio\Alice\Definition\Value\OptionalValue;
 use Nelmio\Alice\Definition\Value\ParameterValue;
-use Nelmio\Alice\Definition\Value\ListValue;
 use Nelmio\Alice\Definition\Value\ValueForCurrentValue;
 use Nelmio\Alice\Definition\Value\VariableValue;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\ParserInterface;
 use Nelmio\Alice\Loader\NativeLoader;
 use Nelmio\Alice\Throwable\ExpressionLanguageParseThrowable;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group integration
+ * @coversNothing
  */
 class ParserIntegrationTest extends TestCase
 {
@@ -50,10 +52,11 @@ class ParserIntegrationTest extends TestCase
     /**
      * @dataProvider provideValues
      */
-    public function testTestParseValues(string $value, $expected)
+    public function testParseValues(string $value, $expected)
     {
         try {
             $actual = $this->parser->parse($value);
+
             if (null === $expected) {
                 $this->fail(
                     sprintf(
@@ -63,7 +66,7 @@ class ParserIntegrationTest extends TestCase
                     )
                 );
             }
-        } catch (\InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException $exception) {
             if (null === $expected) {
                 return;
             }
@@ -101,6 +104,16 @@ class ParserIntegrationTest extends TestCase
         yield 'string value with double quotes' => [
             '"dummy"',
             '"dummy"',
+        ];
+
+        yield 'string ending with letter followed by reference character' => [
+            'foo@example.com',
+            'foo@example.com',
+        ];
+
+        yield 'string ending with number followed by reference character' => [
+            'foo55@example.com',
+            'foo55@example.com',
         ];
 
         // Escaped character
@@ -348,6 +361,15 @@ class ParserIntegrationTest extends TestCase
                 ]
             ),
         ];
+        yield '[Function] nominal with array argument which contains string elements in quotes' => [
+            '<function([\'foo\', "bar"])>',
+            new FunctionCallValue(
+                'function',
+                [
+                    ['foo', 'bar'],
+                ]
+            ),
+        ];
         yield '[Function] unbalanced with arguments (1)' => [
             '<function($foo, $arg)',
             null,
@@ -452,9 +474,23 @@ class ParserIntegrationTest extends TestCase
             '<(function($foo, $arg))>',
             IdentityFactory::create('function($foo, $arg)'),
         ];
-        yield '[Function] identity with params' => [
-            '<(function(echo(<{param}>))>',
-            IdentityFactory::create('function(echo(<{param}>)'),
+        // https://github.com/nelmio/alice/issues/773
+        yield '[Function] with tricky string arguments' => [
+            '<dateTimeBetween(\'something,\', \'-12 months\', \'\', \',\', $now, "something,", "-12 months", "", ",")>',
+            new FunctionCallValue(
+                'dateTimeBetween',
+                [
+                    'something,',
+                    '-12 months',
+                    '',
+                    ',',
+                    new VariableValue('now'),
+                    'something,',
+                    '-12 months',
+                    '',
+                    ',',
+                ]
+            ),
         ];
 
         // Arrays
@@ -837,7 +873,7 @@ class ParserIntegrationTest extends TestCase
         yield '[Reference] list with prop' => [
             '@user{alice, bob}->username',
             new FixturePropertyValue(
-                new ChoiceListValue([
+                new ArrayValue([
                     new FixtureReferenceValue('useralice'),
                     new FixtureReferenceValue('userbob'),
                 ]),
@@ -847,10 +883,22 @@ class ParserIntegrationTest extends TestCase
         yield '[Reference] range with prop' => [
             '@user{1..2}->username',
             new FixturePropertyValue(
-                new ChoiceListValue([
+                new ArrayValue([
                     new FixtureReferenceValue('user1'),
                     new FixtureReferenceValue('user2'),
                 ]),
+                'username'
+            ),
+        ];
+        yield '[Reference] variable with prop' => [
+            '@user$foo->username',
+            new FixturePropertyValue(
+                new FixtureReferenceValue(
+                    new ListValue([
+                        'user',
+                        new VariableValue('foo'),
+                    ])
+                ),
                 'username'
             ),
         ];
@@ -862,7 +910,7 @@ class ParserIntegrationTest extends TestCase
                     new FixtureReferenceValue('user0'),
                     'username'
                 ),
-            ]),
+            ])
         ];
         yield '[Reference] right with prop' => [
             '@user0->username bar',
@@ -901,7 +949,7 @@ class ParserIntegrationTest extends TestCase
         ];
         yield '[Reference] nominal range' => [
             '@user{1..2}',
-            new ChoiceListValue([
+            new ArrayValue([
                 new FixtureReferenceValue('user1'),
                 new FixtureReferenceValue('user2'),
             ]),
@@ -910,7 +958,7 @@ class ParserIntegrationTest extends TestCase
             'foo @user{1..2} bar',
             new ListValue([
                 'foo ',
-                new ChoiceListValue([
+                new ArrayValue([
                     new FixtureReferenceValue('user1'),
                     new FixtureReferenceValue('user2'),
                 ]),
@@ -920,11 +968,11 @@ class ParserIntegrationTest extends TestCase
         yield '[Reference] successive' => [
             '@user{1..2}@group{3..4}',
             new ListValue([
-                new ChoiceListValue([
+                new ArrayValue([
                     new FixtureReferenceValue('user1'),
                     new FixtureReferenceValue('user2'),
                 ]),
-                new ChoiceListValue([
+                new ArrayValue([
                     new FixtureReferenceValue('group3'),
                     new FixtureReferenceValue('group4'),
                 ]),
@@ -1037,7 +1085,7 @@ class ParserIntegrationTest extends TestCase
         ];
         yield '[Reference] nominal list' => [
             '@user0{alice, bob}',
-            new ChoiceListValue([
+            new ArrayValue([
                 new FixtureReferenceValue('user0alice'),
                 new FixtureReferenceValue('user0bob'),
             ]),
@@ -1045,23 +1093,32 @@ class ParserIntegrationTest extends TestCase
         yield '[Reference] list with function' => [
             '@user{alice, bob}->getUserName()',
             new FixtureMethodCallValue(
-                new ChoiceListValue([
+                new ArrayValue([
                     new FixtureReferenceValue('useralice'),
                     new FixtureReferenceValue('userbob'),
                 ]),
-                new FunctionCallValue('getUserName')
+                new FunctionCallValue('getUserName', [])
             ),
         ];
         yield '[Reference] surrounded list' => [
             'foo @user0{alice, bob} bar',
             new ListValue([
                 'foo ',
-                new ChoiceListValue([
+                new ArrayValue([
                     new FixtureReferenceValue('user0alice'),
                     new FixtureReferenceValue('user0bob'),
                 ]),
                 ' bar',
             ]),
+        ];
+        yield '[Reference] reference variable' => [
+            '@user0$foo',
+            new FixtureReferenceValue(
+                new ListValue([
+                    'user0',
+                    new VariableValue('foo')
+                ])
+            ),
         ];
         yield '[Reference] reference function' => [
             '@user0<foo()>',

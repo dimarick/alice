@@ -15,6 +15,7 @@ namespace Nelmio\Alice\Throwable\Exception\Generator\Resolver;
 
 use Nelmio\Alice\Definition\Value\FixturePropertyValue;
 use Nelmio\Alice\FixtureInterface;
+use Throwable;
 
 /**
  * @private
@@ -25,9 +26,8 @@ final class NoSuchPropertyExceptionFactory
         FixtureInterface $fixture,
         FixturePropertyValue $value,
         int $code = 0,
-        \Throwable $previous = null
-    ): NoSuchPropertyException
-    {
+        Throwable $previous = null
+    ): NoSuchPropertyException {
         return new NoSuchPropertyException(
             sprintf(
                 'Could not find the property "%s" of the object "%s" (class: %s).',
@@ -38,5 +38,9 @@ final class NoSuchPropertyExceptionFactory
             $code,
             $previous
         );
+    }
+
+    private function __construct()
+    {
     }
 }

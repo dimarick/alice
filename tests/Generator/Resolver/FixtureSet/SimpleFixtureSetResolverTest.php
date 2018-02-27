@@ -13,19 +13,18 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Resolver\FixtureSet;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\DummyFixture;
 use Nelmio\Alice\Definition\Object\SimpleObject;
 use Nelmio\Alice\FixtureBag;
 use Nelmio\Alice\FixtureSet;
 use Nelmio\Alice\Generator\FixtureSetResolverInterface;
 use Nelmio\Alice\Generator\ResolvedFixtureSet;
-use Nelmio\Alice\Generator\Resolver\FakeFixtureBagResolver;
-use Nelmio\Alice\Generator\Resolver\FakeParameterBagResolver;
 use Nelmio\Alice\Generator\Resolver\FixtureBagResolverInterface;
 use Nelmio\Alice\Generator\Resolver\ParameterBagResolverInterface;
 use Nelmio\Alice\ObjectBag;
 use Nelmio\Alice\ParameterBag;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Resolver\FixtureSet\SimpleFixtureSetResolver
@@ -37,12 +36,9 @@ class SimpleFixtureSetResolverTest extends TestCase
         $this->assertTrue(is_a(SimpleFixtureSetResolver::class, FixtureSetResolverInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new SimpleFixtureSetResolver(new FakeParameterBagResolver(), new FakeFixtureBagResolver());
+        $this->assertFalse((new ReflectionClass(SimpleFixtureSetResolver::class))->isCloneable());
     }
 
     public function testReturnsResolvedParametersAndFixtures()

@@ -9,13 +9,24 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+/*
+ * This file is part of the Alice package.
+ *
+ * (c) Nelmio <hello@nelm.io>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nelmio\Alice\PropertyAccess;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Entity\DummyWithPublicProperty;
 use Nelmio\Alice\Entity\StdClassFactory;
 use Nelmio\Alice\Symfony\PropertyAccess\FakePropertyAccessor;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
@@ -28,12 +39,9 @@ class StdPropertyAccessorTest extends TestCase
         $this->assertTrue(is_a(StdPropertyAccessor::class, PropertyAccessorInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new StdPropertyAccessor(new FakePropertyAccessor());
+        $this->assertFalse((new ReflectionClass(StdPropertyAccessor::class))->isCloneable());
     }
 
     public function testSetValueOfAStdClass()

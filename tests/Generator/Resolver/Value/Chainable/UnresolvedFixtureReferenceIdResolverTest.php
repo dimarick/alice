@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Resolver\Value\Chainable;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\FakeFixture;
 use Nelmio\Alice\Definition\Fixture\SimpleFixture;
 use Nelmio\Alice\Definition\Object\SimpleObject;
@@ -33,7 +32,9 @@ use Nelmio\Alice\Generator\Resolver\Value\FakeValueResolver;
 use Nelmio\Alice\Generator\ValueResolverAwareInterface;
 use Nelmio\Alice\Generator\ValueResolverInterface;
 use Nelmio\Alice\ObjectBag;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Resolver\Value\Chainable\UnresolvedFixtureReferenceIdResolver
@@ -55,12 +56,9 @@ class UnresolvedFixtureReferenceIdResolverTest extends TestCase
         $this->assertTrue(is_a(UnresolvedFixtureReferenceIdResolver::class, ValueResolverAwareInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new UnresolvedFixtureReferenceIdResolver(new FakeChainableValueResolver());
+        $this->assertFalse((new ReflectionClass(UnresolvedFixtureReferenceIdResolver::class))->isCloneable());
     }
 
     public function testCanResolveTheValueResolvableByItsDecoratedResolver()
@@ -286,14 +284,14 @@ class UnresolvedFixtureReferenceIdResolverTest extends TestCase
         $valueResolverProphecy
             ->resolve($idValue, $dummyFixture, $set, $scope, $context)
             ->willReturn(
-                 new ResolvedValueWithFixtureSet(
-                    'alice',
+                new ResolvedValueWithFixtureSet(
+                     'alice',
                      $newSet = ResolvedFixtureSetFactory::create(
-                        null,
-                        $fixtureBag->with(new SimpleFixture('value_resolver_fixture', 'Dummy', SpecificationBagFactory::create())),
-                        $newObjectBag = $objectBag->with(new SimpleObject('value_resolver_fixture', new \stdClass()))
-                    )
-                )
+                         null,
+                         $fixtureBag->with(new SimpleFixture('value_resolver_fixture', 'Dummy', SpecificationBagFactory::create())),
+                         $newObjectBag = $objectBag->with(new SimpleObject('value_resolver_fixture', new \stdClass()))
+                     )
+                 )
             )
         ;
         /** @var ValueResolverInterface $valueResolver */

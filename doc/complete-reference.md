@@ -7,8 +7,9 @@
 1. [Calling Methods](#calling-methods)
     1. [Method arguments with flags](#method-arguments-with-flags)
     1. [Method arguments with parameters](#method-arguments-with-parameters)
+    1. [Optional method calls](#optional-method-calls)
 1. [Specifying Constructor Arguments](#specifying-constructor-arguments)
-1. [Using a factory](#using-a-factory)
+1. [Using a factory / a named constructor](#using-a-factory--a-named-constructor)
 1. [Optional Data](#optional-data)
 1. [Handling Unique Constraints](#handling-unique-constraints)
 
@@ -44,9 +45,10 @@ Nelmio\Entity\Group:
 This works fine, but it is not very powerful and is completely static. You
 still have to do most of the work. Let's see how to make this more interesting.
 
+
 ### PHP
 
-You can also specify fixtures in PHP by returing an array where each key with
+You can also specify fixtures in PHP by returning an array where each key with
 the following structure:
 
 ```php
@@ -65,6 +67,7 @@ return [
     ],
 ];
 ```
+
 
 
 ## Fixture Ranges
@@ -87,6 +90,9 @@ Nelmio\Entity\User:
 Now it will generate ten users, with IDs `user1` to `user10`. Pretty good but
 we only have 10 bobs with the same name, username and email, which is not
 so fancy yet.
+
+
+## Fixture Lists
 
 You can also specify a list of values instead of a range:
 
@@ -183,6 +189,20 @@ The case above can be a bit confusing in YAML, in PHP it would be the following:
 ],
 ```
 
+### Optional method calls
+
+Calls can be made optional thanks to an optional flag. In the following example, `setLocation()` will have 80% chances
+to be called.
+
+```yaml
+Nelmio\Entity\User:
+    user1:
+        username: '<username()>'
+        __calls:
+            - setLocation (80%?): [40.689269, -74.044737]
+```
+
+
 
 ## Specifying Constructor Arguments
 
@@ -206,13 +226,13 @@ Nelmio\Entity\User:
 ```
 
 
-## Using a factory
+## Using a factory / a named constructor
 
-**[TODO] Status: unimplemented; usable in with `__construct` in `__factory` but this will be deprecated once
-`__factory` is out available and will be removed in 4.0**
+**Note**: the following also applies to `__construct`. However using `__construct` for factories has been deprecated as of
+3.0.0 and will be removed in 4.0.0. Use `__factory` instead.
 
-If you want to call a static factory method instead of a constructor, you can
-specify a hash as the constructor:
+If you want to call a static factory method (a.k.a named constructor) instead
+of a constructor, you can specify a hash as the constructor:
 
 ```yaml
 Nelmio\Entity\User:

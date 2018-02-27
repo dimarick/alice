@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\LexerIntegrationTest;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\ParserIntegrationTest;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @coversNothing
@@ -39,6 +39,7 @@ class LexerParserSynchronizationTest extends TestCase
         foreach ($lexerProviderKeys as $index => $lexerProviderKey) {
             $this->assertEquals($lexerProviderKey, $parserProviderKeys[$index]);
         }
+
         $this->assertEquals(count($lexerProviderKeys), count($parserProviderKeys));
     }
 }

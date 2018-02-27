@@ -13,13 +13,13 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Parser\IncludeProcessor;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\FileLocator\DefaultFileLocator;
-use Nelmio\Alice\FileLocator\FakeFileLocator;
 use Nelmio\Alice\FileLocatorInterface;
 use Nelmio\Alice\Parser\IncludeProcessorInterface;
 use Nelmio\Alice\ParserInterface;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Parser\IncludeProcessor\DefaultIncludeProcessor
@@ -41,12 +41,9 @@ class DefaultIncludeProcessorTest extends TestCase
         $this->assertTrue(is_a(DefaultIncludeProcessor::class, IncludeProcessorInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new DefaultIncludeProcessor(new FakeFileLocator());
+        $this->assertFalse((new ReflectionClass(DefaultIncludeProcessor::class))->isCloneable());
     }
 
     /**
@@ -103,7 +100,7 @@ class DefaultIncludeProcessorTest extends TestCase
 
     /**
      * @expectedException \TypeError
-     * @expectedExceptionMessageRegExp /^Expected include statement to be either null or an array of files to include\. Got string instead in file ".+\/main\.yml"\.$/
+     * @expectedExceptionMessageRegExp /^Expected include statement to be either null or an array of files to include\. Got "string" instead in file ".+\/main\.yml"\.$/
      */
     public function testIfNotNullIncludeStatementMustBeAnArray()
     {

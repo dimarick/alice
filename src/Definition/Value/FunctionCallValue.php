@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nelmio\Alice\Definition\Value;
 
 use Nelmio\Alice\Definition\ValueInterface;
+use function Nelmio\Alice\deep_clone;
 
 /**
  * Value object representing '<name()>'.
@@ -32,7 +33,6 @@ final class FunctionCallValue implements ValueInterface
 
     /**
      * @param string $name e.g. 'randomElement'
-     * @param array  $arguments
      */
     public function __construct(string $name, array $arguments = [])
     {

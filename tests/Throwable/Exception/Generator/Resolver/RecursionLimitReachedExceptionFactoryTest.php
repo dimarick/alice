@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  */
 class RecursionLimitReachedExceptionFactoryTest extends TestCase
 {
-    public function testTestCreateNewExceptionWithFactory()
+    public function testCreateNewExceptionWithFactory()
     {
         $exception = RecursionLimitReachedExceptionFactory::create(10, 'foo');
 
@@ -32,4 +32,3 @@ class RecursionLimitReachedExceptionFactoryTest extends TestCase
         $this->assertNull($exception->getPrevious());
     }
 }
-

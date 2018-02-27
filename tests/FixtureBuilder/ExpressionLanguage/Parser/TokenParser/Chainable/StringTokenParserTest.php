@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\ChainableTokenParserInterface;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Token;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\TokenType;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\StringTokenParser
@@ -28,19 +29,16 @@ class StringTokenParserTest extends TestCase
         $this->assertTrue(is_a(StringTokenParser::class, ChainableTokenParserInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new StringTokenParser();
+        $this->assertFalse((new ReflectionClass(StringTokenParser::class))->isCloneable());
     }
 
     public function testCanParseDynamicArrayTokens()
     {
         $token = new Token('', new TokenType(TokenType::STRING_TYPE));
         $anotherToken = new Token('', new TokenType(TokenType::IDENTITY_TYPE));
-        $parser = new StringTokenParser();
+        $parser = new StringTokenParser(new ArgumentEscaper());
 
         $this->assertTrue($parser->canParse($token));
         $this->assertFalse($parser->canParse($anotherToken));
@@ -51,7 +49,7 @@ class StringTokenParserTest extends TestCase
         $token = new Token(' foo ', new TokenType(TokenType::STRING_TYPE));
         $expected = ' foo ';
 
-        $parser = new StringTokenParser();
+        $parser = new StringTokenParser(new ArgumentEscaper());
         $actual = $parser->parse($token);
 
         $this->assertEquals($expected, $actual);

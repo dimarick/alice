@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\FakeParser;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Token;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\TokenType;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\AbstractChainableParserAwareParser
@@ -28,12 +29,9 @@ class AbstractChainableParserAwareParserTest extends TestCase
         $this->assertTrue(is_a(ImpartialChainableParserAwareParser::class, AbstractChainableParserAwareParser::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new ImpartialChainableParserAwareParser();
+        $this->assertFalse((new ReflectionClass(ImpartialChainableParserAwareParser::class))->isCloneable());
     }
 
     public function testCanBeInstantiatedWithoutAParser()

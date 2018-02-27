@@ -14,16 +14,15 @@ declare(strict_types=1);
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable;
 
 use Nelmio\Alice\Definition\RangeName;
-use Nelmio\Alice\Definition\Value\ChoiceListValue;
+use Nelmio\Alice\Definition\Value\ArrayValue;
 use Nelmio\Alice\Definition\Value\FixtureReferenceValue;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\NullRangeNameDenormalizer;
-use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ExpressionLanguageExceptionFactory;
-use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ParseException;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\RangeNameDenormalizer;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\ChainableTokenParserInterface;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Token;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\TokenType;
 use Nelmio\Alice\IsAServiceTrait;
+use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ExpressionLanguageExceptionFactory;
+use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ParseException;
 
 /**
  * @internal
@@ -71,15 +70,11 @@ final class FixtureRangeReferenceTokenParser implements ChainableTokenParserInte
             $references[] = new FixtureReferenceValue($fixtureId);
         }
 
-        return new ChoiceListValue($references);
+        return new ArrayValue($references);
     }
 
     /**
-     * @param Token $token
-     *
      * @throws ParseException
-     *
-     * @return RangeName
      *
      * @example
      *  "@user{1..10}" => new RangeName('user', 1, 10)
@@ -92,6 +87,7 @@ final class FixtureRangeReferenceTokenParser implements ChainableTokenParserInte
         if (1 !== preg_match(self::REGEX, (string) $name, $matches)) {
             throw ExpressionLanguageExceptionFactory::createForUnparsableToken($token);
         }
+
         $reference = str_replace(sprintf('{%s}', $matches['range']), $this->token, $name);
 
         return new RangeName($reference, (int) $matches['from'], (int) $matches['to']);

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nelmio\Alice\Definition\Value;
 
 use Nelmio\Alice\Definition\ValueInterface;
+use function Nelmio\Alice\deep_clone;
 
 final class ArrayValue implements ValueInterface
 {

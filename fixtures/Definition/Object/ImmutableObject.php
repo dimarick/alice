@@ -9,11 +9,12 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Nelmio\Alice\Definition\Object;
 
 use Nelmio\Alice\ObjectInterface;
+use function Nelmio\Alice\deep_clone;
 
 class ImmutableObject implements ObjectInterface
 {
@@ -51,5 +52,13 @@ class ImmutableObject implements ObjectInterface
     public function getInstance()
     {
         return deep_clone($this->instance);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function withInstance($newInstance)
+    {
+        return new self($this->id, $newInstance);
     }
 }

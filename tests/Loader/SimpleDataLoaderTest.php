@@ -13,15 +13,14 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Loader;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\DataLoaderInterface;
-use Nelmio\Alice\FixtureBuilder\FakeFixtureBuilder;
 use Nelmio\Alice\FixtureBuilderInterface;
 use Nelmio\Alice\FixtureSetFactory;
-use Nelmio\Alice\Generator\FakeGenerator;
 use Nelmio\Alice\GeneratorInterface;
 use Nelmio\Alice\ObjectSetFactory;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Loader\SimpleDataLoader
@@ -33,12 +32,9 @@ class SimpleDataLoaderTest extends TestCase
         $this->assertTrue(is_a(SimpleDataLoader::class, DataLoaderInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new SimpleDataLoader(new FakeFixtureBuilder(), new FakeGenerator());
+        $this->assertFalse((new ReflectionClass(SimpleDataLoader::class))->isCloneable());
     }
 
     public function testLoadAFileAndReturnsAnObjectSet()

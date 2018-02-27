@@ -13,14 +13,14 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Resolver\Parameter;
 
-use PHPUnit\Framework\TestCase;
-use Nelmio\Alice\Generator\Resolver\FakeParameterResolver;
+use Nelmio\Alice\Generator\Resolver\ParameterBagResolverInterface;
+use Nelmio\Alice\Generator\Resolver\ParameterResolverInterface;
 use Nelmio\Alice\Generator\Resolver\ResolvingContext;
 use Nelmio\Alice\Parameter;
 use Nelmio\Alice\ParameterBag;
-use Nelmio\Alice\Generator\Resolver\ParameterBagResolverInterface;
-use Nelmio\Alice\Generator\Resolver\ParameterResolverInterface;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Resolver\Parameter\SimpleParameterBagResolver
@@ -32,12 +32,9 @@ class SimpleParameterBagResolverTest extends TestCase
         $this->assertTrue(is_a(SimpleParameterBagResolver::class, ParameterBagResolverInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new SimpleParameterBagResolver(new FakeParameterResolver());
+        $this->assertFalse((new ReflectionClass(SimpleParameterBagResolver::class))->isCloneable());
     }
 
     public function testDecoratesResolverToResolveParameterBag()

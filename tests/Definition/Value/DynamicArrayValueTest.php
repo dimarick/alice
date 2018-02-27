@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Definition\Value;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\ValueInterface;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Nelmio\Alice\Definition\Value\DynamicArrayValue
@@ -90,91 +90,93 @@ class DynamicArrayValueTest extends TestCase
         yield 'null/array' => [
             null,
             'dummy_element',
-            'Expected quantifier to be either an integer or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected quantifier to be either an integer or a "'.ValueInterface::class.'". Got '
             .'"NULL" instead.'
         ];
 
         yield 'bool/array' => [
             true,
             'dummy_element',
-            'Expected quantifier to be either an integer or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected quantifier to be either an integer or a "'.ValueInterface::class.'". Got '
             .'"boolean" instead.'
         ];
 
         yield 'string/array' => [
             '',
             'dummy_element',
-            'Expected quantifier to be either an integer or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected quantifier to be either an integer or a "'.ValueInterface::class.'". Got '
             .'"string" instead.'
         ];
 
         yield 'float/array' => [
             .5,
             'dummy_element',
-            'Expected quantifier to be either an integer or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected quantifier to be either an integer or a "'.ValueInterface::class.'". Got '
             .'"double" instead.'
         ];
 
         yield 'array/array' => [
             [],
             'dummy_element',
-            'Expected quantifier to be either an integer or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected quantifier to be either an integer or a "'.ValueInterface::class.'". Got '
             .'"array" instead.'
         ];
 
         yield 'object/array' => [
             new \stdClass(),
             'dummy_element',
-            'Expected quantifier to be either an integer or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected quantifier to be either an integer or a "'.ValueInterface::class.'". Got '
             .'"stdClass" instead.'
         ];
 
         yield 'closure/array' => [
-            function () {},
+            function () {
+            },
             'dummy_element',
-            'Expected quantifier to be either an integer or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected quantifier to be either an integer or a "'.ValueInterface::class.'". Got '
             .'"Closure" instead.'
         ];
 
         yield 'int/null' => [
             -1,
             null,
-            'Expected element to be either string, an array or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected element to be either string, an array or a "'.ValueInterface::class.'". Got '
             .'"NULL" instead.'
         ];
 
         yield 'int/bool' => [
             -1,
             true,
-            'Expected element to be either string, an array or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected element to be either string, an array or a "'.ValueInterface::class.'". Got '
             .'"boolean" instead.'
         ];
 
         yield 'int/float' => [
             -1,
             .5,
-            'Expected element to be either string, an array or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected element to be either string, an array or a "'.ValueInterface::class.'". Got '
             .'"double" instead.'
         ];
 
         yield 'int/int' => [
             1,
             1,
-            'Expected element to be either string, an array or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected element to be either string, an array or a "'.ValueInterface::class.'". Got '
             .'"integer" instead.'
         ];
 
         yield 'int/closure' => [
             -1,
-            function () {},
-            'Expected element to be either string, an array or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            function () {
+            },
+            'Expected element to be either string, an array or a "'.ValueInterface::class.'". Got '
             .'"Closure" instead.'
         ];
 
         yield 'int/non value interface object' => [
             -1,
             new \stdClass(),
-            'Expected element to be either string, an array or a "Nelmio\Alice\Definition\ValueInterface" object. Got '
+            'Expected element to be either string, an array or a "'.ValueInterface::class.'". Got '
             .'"stdClass" instead.'
         ];
     }

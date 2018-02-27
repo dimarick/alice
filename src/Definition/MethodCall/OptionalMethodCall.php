@@ -31,16 +31,9 @@ final class OptionalMethodCall implements MethodCallInterface
      */
     private $flag;
 
-    /**
-     * @param MethodCallInterface $methodCall
-     * @param OptionalFlag        $flag
-     */
     public function __construct(MethodCallInterface $methodCall, OptionalFlag $flag)
     {
-        $this->methodCall = (null !== $caller = $methodCall->getCaller())
-            ? new MethodCallWithReference($caller, $methodCall->getMethod(), $methodCall->getArguments())
-            : new SimpleMethodCall($methodCall->getMethod(), $methodCall->getArguments())
-        ;
+        $this->methodCall = $methodCall;
         $this->flag = $flag;
     }
 
@@ -85,6 +78,11 @@ final class OptionalMethodCall implements MethodCallInterface
     public function getPercentage(): int
     {
         return $this->flag->getPercentage();
+    }
+
+    public function getOriginalMethodCall(): MethodCallInterface
+    {
+        return $this->methodCall;
     }
 
     /**

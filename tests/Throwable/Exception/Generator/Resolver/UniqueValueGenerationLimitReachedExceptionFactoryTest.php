@@ -13,15 +13,15 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Throwable\Exception\Generator\Resolver;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Value\UniqueValue;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Nelmio\Alice\Throwable\Exception\Generator\Resolver\UniqueValueGenerationLimitReachedExceptionFactory
  */
 class UniqueValueGenerationLimitReachedExceptionFactoryTest extends TestCase
 {
-    public function testTestCreateNewExceptionWithFactory()
+    public function testCreateNewExceptionWithFactory()
     {
         $exception = UniqueValueGenerationLimitReachedExceptionFactory::create(
             new UniqueValue('unique_id', new \stdClass()),

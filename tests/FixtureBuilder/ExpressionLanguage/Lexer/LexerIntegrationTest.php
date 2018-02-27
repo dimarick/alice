@@ -13,15 +13,17 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer;
 
-use PHPUnit\Framework\TestCase;
+use InvalidArgumentException;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\LexerInterface;
-use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\LexException;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Token;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\TokenType;
 use Nelmio\Alice\Loader\NativeLoader;
+use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\LexException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group integration
+ * @coversNothing
  */
 class LexerIntegrationTest extends TestCase
 {
@@ -41,10 +43,11 @@ class LexerIntegrationTest extends TestCase
     /**
      * @dataProvider provideValues
      */
-    public function testTestCanLexValues(string $value, $expected)
+    public function testCanLexValues(string $value, $expected)
     {
         try {
             $actual = $this->lexer->lex($value);
+
             if (null === $expected) {
                 $this->fail(
                     sprintf(
@@ -54,7 +57,7 @@ class LexerIntegrationTest extends TestCase
                     )
                 );
             }
-        } catch (\InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException $exception) {
             if (null === $expected) {
                 return;
             }
@@ -103,6 +106,23 @@ class LexerIntegrationTest extends TestCase
             '"dummy"',
             [
                 new Token('"dummy"', new TokenType(TokenType::STRING_TYPE)),
+            ],
+        ];
+
+        yield 'string ending with letter followed by reference character' => [
+            'foo@example.com',
+            [
+                new Token('foo', new TokenType(TokenType::STRING_TYPE)),
+                new Token('\@', new TokenType(TokenType::ESCAPED_VALUE_TYPE)),
+                new Token('example.com', new TokenType(TokenType::STRING_TYPE)),
+            ],
+        ];
+
+        yield 'string ending with number followed by reference character' => [
+            'foo55@example.com',
+            [
+                new Token('foo', new TokenType(TokenType::STRING_TYPE)),
+                new Token('55@example.com', new TokenType(TokenType::STRING_TYPE)),
             ],
         ];
 
@@ -407,6 +427,12 @@ class LexerIntegrationTest extends TestCase
                 new Token('<aliceTokenizedFunction(FUNCTION_START__function__\'foo\', "bar"IDENTITY_OR_FUNCTION_END)>', new TokenType(TokenType::FUNCTION_TYPE)),
             ],
         ];
+        yield '[Function] nominal with array argument which contains string elements in quotes' => [
+            '<function([\'foo\', "bar"])>',
+            [
+                new Token('<aliceTokenizedFunction(FUNCTION_START__function__[\'foo\', "bar"]IDENTITY_OR_FUNCTION_END)>', new TokenType(TokenType::FUNCTION_TYPE)),
+            ],
+        ];
         yield '[Function] unbalanced with arguments (1)' => [
             '<function($foo, $arg)',
             null,
@@ -473,10 +499,11 @@ class LexerIntegrationTest extends TestCase
                 new Token('<aliceTokenizedFunction(IDENTITY_STARTfunction($foo, $arg)IDENTITY_OR_FUNCTION_END)>', new TokenType(TokenType::FUNCTION_TYPE)),
             ],
         ];
-        yield '[Function] identity with params' => [
-            '<(function(echo(<{param}>))>',
+        // https://github.com/nelmio/alice/issues/773
+        yield '[Function] with tricky string arguments' => [
+            '<dateTimeBetween(\'something,\', \'-12 months\', \'\', \',\', $now, "something,", "-12 months", "", ",")>',
             [
-                new Token('<aliceTokenizedFunction(IDENTITY_STARTfunction(echo(<{param}>)IDENTITY_OR_FUNCTION_END)>', new TokenType(TokenType::FUNCTION_TYPE)),
+                new Token('<aliceTokenizedFunction(FUNCTION_START__dateTimeBetween__\'something,\', \'-12 months\', \'\', \',\', $now, "something,", "-12 months", "", ","IDENTITY_OR_FUNCTION_END)>', new TokenType(TokenType::FUNCTION_TYPE)),
             ],
         ];
 
@@ -815,6 +842,12 @@ class LexerIntegrationTest extends TestCase
                 new Token('@user{1..2}->username', new TokenType(TokenType::PROPERTY_REFERENCE_TYPE)),
             ],
         ];
+        yield '[Reference] variable with prop' => [
+            '@user$current->username',
+            [
+                new Token('@user$current->username', new TokenType(TokenType::PROPERTY_REFERENCE_TYPE)),
+            ],
+        ];
         yield '[Reference] left with prop' => [
             'foo @user0->username',
             [
@@ -994,6 +1027,12 @@ class LexerIntegrationTest extends TestCase
                 new Token('foo ', new TokenType(TokenType::STRING_TYPE)),
                 new Token('@user0{alice, bob}', new TokenType(TokenType::LIST_REFERENCE_TYPE)),
                 new Token(' bar', new TokenType(TokenType::STRING_TYPE)),
+            ],
+        ];
+        yield '[Reference] reference variable' => [
+            '@user0$foo',
+            [
+                new Token('@user0$foo', new TokenType(TokenType::VARIABLE_REFERENCE_TYPE)),
             ],
         ];
         yield '[Reference] reference function' => [

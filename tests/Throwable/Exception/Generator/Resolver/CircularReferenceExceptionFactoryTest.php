@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  */
 class CircularReferenceExceptionFactoryTest extends TestCase
 {
-    public function testTestCreateNewExceptionWithFactory()
+    public function testCreateNewExceptionWithFactory()
     {
         $exception = CircularReferenceExceptionFactory::createForParameter('foo', ['bar' => 1, 'baz' => 0]);
 
@@ -32,4 +32,3 @@ class CircularReferenceExceptionFactoryTest extends TestCase
         $this->assertNull($exception->getPrevious());
     }
 }
-

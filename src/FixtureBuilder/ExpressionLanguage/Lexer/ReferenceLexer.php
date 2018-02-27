@@ -13,13 +13,13 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer;
 
-use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ExpressionLanguageExceptionFactory;
-use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\LexException;
-use Nelmio\Alice\Throwable\Exception\InvalidArgumentExceptionFactory;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\LexerInterface;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Token;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\TokenType;
 use Nelmio\Alice\IsAServiceTrait;
+use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ExpressionLanguageExceptionFactory;
+use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\LexException;
+use Nelmio\Alice\Throwable\Exception\InvalidArgumentExceptionFactory;
 
 /**
  * @internal
@@ -35,6 +35,7 @@ final class ReferenceLexer implements LexerInterface
         '/^@[^\ @]+\{.*,.*}/' => TokenType::LIST_REFERENCE_TYPE,
         '/^@.*\*/' => TokenType::WILDCARD_REFERENCE_TYPE,
         '/^@.*->.*/' => null,
+        '/^@\S+\$\S+/' => TokenType::VARIABLE_REFERENCE_TYPE,
         '/^@\S+/' => TokenType::SIMPLE_REFERENCE_TYPE,
         '/^@/' => TokenType::SIMPLE_REFERENCE_TYPE,
     ];

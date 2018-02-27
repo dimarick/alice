@@ -51,8 +51,6 @@ final class SimpleFixtureBagDenormalizer implements FixtureBagDenormalizerInterf
      *          ],
      *      ],
      *  ];
-     *
-     * @return FixtureBag
      */
     public function denormalize(array $data): FixtureBag
     {
@@ -62,11 +60,15 @@ final class SimpleFixtureBagDenormalizer implements FixtureBagDenormalizerInterf
             $fqcn = $flags->getKey();
 
             foreach ($rawFixtureSet as $reference => $specs) {
+                if (null === $specs) {
+                    $specs = [];
+                }
+
                 $fixtures = $this->fixtureDenormalizer->denormalize(
                     $fixtures,
                     $fqcn,
                     $reference,
-                    $specs,
+                    $specs ?? [],
                     $flags
                 );
             }

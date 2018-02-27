@@ -13,16 +13,16 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Throwable\Exception\Generator\Hydrator;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Object\SimpleObject;
 use Nelmio\Alice\Definition\Property;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Nelmio\Alice\Throwable\Exception\Generator\Hydrator\HydrationExceptionFactory
  */
 class HydrationExceptionFactoryTest extends TestCase
 {
-    public function testTestCreate()
+    public function testCreate()
     {
         $object = new SimpleObject('dummy', new \stdClass());
         $property = new Property('foo', 'bar');
@@ -39,7 +39,7 @@ class HydrationExceptionFactoryTest extends TestCase
         $this->assertSame($previous, $exception->getPrevious());
     }
 
-    public function testTestCreateForInaccessibleProperty()
+    public function testCreateForInaccessibleProperty()
     {
         $object = new SimpleObject('dummy', new \stdClass());
         $property = new Property('foo', 'bar');
@@ -65,7 +65,7 @@ class HydrationExceptionFactoryTest extends TestCase
         $this->assertSame($previous, $exception->getPrevious());
     }
 
-    public function testTestCreateForInvalidProperty()
+    public function testCreateForInvalidProperty()
     {
         $object = new SimpleObject('dummy', new \stdClass());
         $property = new Property('foo', 'bar');
@@ -91,7 +91,7 @@ class HydrationExceptionFactoryTest extends TestCase
         $this->assertSame($previous, $exception->getPrevious());
     }
 
-    public function testTestCreateForCouldNotHydrateObjectWithProperty()
+    public function testCreateForCouldNotHydrateObjectWithProperty()
     {
         $object = new SimpleObject('dummy', new \stdClass());
         $property = new Property('foo', 'bar');

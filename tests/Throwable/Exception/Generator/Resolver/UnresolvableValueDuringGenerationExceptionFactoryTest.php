@@ -9,19 +9,19 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Nelmio\Alice\Throwable\Exception\Generator\Resolver;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Throwable\Exception\RootResolutionException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Nelmio\Alice\Throwable\Exception\Generator\Resolver\UnresolvableValueDuringGenerationExceptionFactory
  */
 class UnresolvableValueDuringGenerationExceptionFactoryTest extends TestCase
 {
-    public function testTestCreateFromResolutionThrowable()
+    public function testCreateFromResolutionThrowable()
     {
         $previous = new RootResolutionException();
 

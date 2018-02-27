@@ -13,15 +13,15 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Flag\ElementFlag;
 use Nelmio\Alice\Definition\FlagBag;
 use Nelmio\Alice\FixtureBag;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\FixtureBagDenormalizerInterface;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser\FakeFlagParser;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParserInterface;
 use Nelmio\Alice\FixtureInterface;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SimpleFixtureBagDenormalizer
@@ -33,12 +33,9 @@ class SimpleFixtureBagDenormalizerTest extends TestCase
         $this->assertTrue(is_a(SimpleFixtureBagDenormalizer::class, FixtureBagDenormalizerInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new SimpleFixtureBagDenormalizer(new FakeFixtureDenormalizer(), new FakeFlagParser());
+        $this->assertFalse((new ReflectionClass(SimpleFixtureBagDenormalizer::class))->isCloneable());
     }
 
     public function testDenormalizesASetOfDataIntoAFixtureBag()
@@ -58,6 +55,11 @@ class SimpleFixtureBagDenormalizerTest extends TestCase
         /** @var FixtureInterface $fixture3 */
         $fixture3 = $fixture3Prophecy->reveal();
 
+        $fixture4Prophecy = $this->prophesize(FixtureInterface::class);
+        $fixture4Prophecy->getId()->willReturn('owern2');
+        /** @var FixtureInterface $fixture4 */
+        $fixture4 = $fixture3Prophecy->reveal();
+
         $data = [
             'Nelmio\Entity\User (dummy_flag)' => [
                 'user_alice' => [
@@ -69,6 +71,7 @@ class SimpleFixtureBagDenormalizerTest extends TestCase
             ],
             'Nelmio\Entity\Owner' => [
                 'owner1' => [],
+                'owner2' => null,
             ],
         ];
 
@@ -125,15 +128,26 @@ class SimpleFixtureBagDenormalizerTest extends TestCase
             )
             ->willReturn($bag3)
         ;
+        $bag4 = $bag3->with($fixture4);
+        $fixtureDenormalizerProphecy
+            ->denormalize(
+                $bag3,
+                'Nelmio\Entity\Owner',
+                'owner2',
+                [],
+                $ownerFlags
+            )
+            ->willReturn($bag4)
+        ;
         /** @var FixtureDenormalizerInterface $fixtureDenormalizer */
         $fixtureDenormalizer = $fixtureDenormalizerProphecy->reveal();
 
         $denormalizer = new SimpleFixtureBagDenormalizer($fixtureDenormalizer, $flagParser);
         $actual = $denormalizer->denormalize($data);
 
-        $this->assertSame($bag3, $actual);
+        $this->assertSame($bag4, $actual);
 
         $flagParserProphecy->parse(Argument::any())->shouldHaveBeenCalledTimes(2);
-        $fixtureDenormalizerProphecy->denormalize(Argument::cetera())->shouldHaveBeenCalledTimes(3);
+        $fixtureDenormalizerProphecy->denormalize(Argument::cetera())->shouldHaveBeenCalledTimes(4);
     }
 }

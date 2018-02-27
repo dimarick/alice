@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Throwable\Exception;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Parameter;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Nelmio\Alice\Throwable\Exception\ParameterNotFoundExceptionFactory
@@ -26,7 +26,7 @@ class ParameterNotFoundExceptionFactoryTest extends TestCase
         $this->assertTrue(is_a(ParameterNotFoundException::class, \RuntimeException::class, true));
     }
 
-    public function testTestCreateNewExceptionWithFactory()
+    public function testCreateNewExceptionWithFactory()
     {
         $exception = ParameterNotFoundExceptionFactory::create('foo');
 
@@ -38,7 +38,7 @@ class ParameterNotFoundExceptionFactoryTest extends TestCase
         $this->assertNull($exception->getPrevious());
     }
 
-    public function testTestCreateForWhenResolvingParameter()
+    public function testCreateForWhenResolvingParameter()
     {
         $exception = ParameterNotFoundExceptionFactory::createForWhenResolvingParameter(
             'foo',

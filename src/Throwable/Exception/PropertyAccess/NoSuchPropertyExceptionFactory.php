@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Nelmio\Alice\Throwable\Exception\PropertyAccess;
 
@@ -28,5 +28,9 @@ final class NoSuchPropertyExceptionFactory
                 $propertyPath
             )
         );
+    }
+
+    private function __construct()
+    {
     }
 }

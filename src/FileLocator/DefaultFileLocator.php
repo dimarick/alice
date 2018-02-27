@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FileLocator;
 
-use Nelmio\Alice\Throwable\Exception\FileLocator\FileNotFoundException;
 use Nelmio\Alice\FileLocatorInterface;
+use Nelmio\Alice\Throwable\Exception\FileLocator\FileNotFoundException;
 
 /**
  * Symfony DefaultFileLocator shamelessly copy/pasted to avoid a dependency to the Config component and simplified a bit for
@@ -30,7 +30,7 @@ final class DefaultFileLocator implements FileLocatorInterface
      */
     public function locate(string $name, string $currentPath = null): string
     {
-        if ('' == $name) {
+        if ('' === $name) {
             throw FileNotFoundException::createForEmptyFile();
         }
 
@@ -50,7 +50,8 @@ final class DefaultFileLocator implements FileLocatorInterface
     {
         return ($file[0] === '/'
             || $file[0] === '\\'
-            || (strlen($file) > 3
+            || (
+                strlen($file) > 3
                 && ctype_alpha($file[0])
                 && $file[1] === ':'
                 && ($file[2] === '\\' || $file[2] === '/')

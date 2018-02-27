@@ -13,14 +13,14 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\FixtureBag;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\FakeDenormalizer;
 use Nelmio\Alice\FixtureBuilderInterface;
 use Nelmio\Alice\FixtureSet;
 use Nelmio\Alice\ObjectBag;
 use Nelmio\Alice\ParameterBag;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\FixtureBuilder\SimpleBuilder
@@ -32,13 +32,9 @@ class SimpleBuilderTest extends TestCase
         $this->assertTrue(is_a(SimpleBuilder::class, FixtureBuilderInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        $builder = new SimpleBuilder(new FakeDenormalizer());
-        clone $builder;
+        $this->assertFalse((new ReflectionClass(SimpleBuilder::class))->isCloneable());
     }
 
     public function testBuildSet()

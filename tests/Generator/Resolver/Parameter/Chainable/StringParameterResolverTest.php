@@ -13,17 +13,18 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Resolver\Parameter;
 
-use PHPUnit\Framework\TestCase;
-use Nelmio\Alice\Throwable\Exception\ParameterNotFoundException;
+use Nelmio\Alice\Generator\Resolver\ChainableParameterResolverInterface;
 use Nelmio\Alice\Generator\Resolver\FakeParameterResolver;
 use Nelmio\Alice\Generator\Resolver\Parameter\Chainable\StringParameterResolver;
+use Nelmio\Alice\Generator\Resolver\ParameterResolverAwareInterface;
+use Nelmio\Alice\Generator\Resolver\ParameterResolverInterface;
 use Nelmio\Alice\Generator\Resolver\ResolvingContext;
 use Nelmio\Alice\Parameter;
 use Nelmio\Alice\ParameterBag;
-use Nelmio\Alice\Generator\Resolver\ChainableParameterResolverInterface;
-use Nelmio\Alice\Generator\Resolver\ParameterResolverAwareInterface;
-use Nelmio\Alice\Generator\Resolver\ParameterResolverInterface;
+use Nelmio\Alice\Throwable\Exception\ParameterNotFoundException;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Resolver\Parameter\Chainable\StringParameterResolver
@@ -50,12 +51,9 @@ class StringParameterResolverTest extends TestCase
         new StringParameterResolver(new FakeParameterResolver());
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new StringParameterResolver();
+        $this->assertFalse((new ReflectionClass(StringParameterResolver::class))->isCloneable());
     }
 
     public function testWithersReturnNewModifiedInstance()
@@ -79,7 +77,8 @@ class StringParameterResolverTest extends TestCase
         $this->assertFalse($resolver->canResolve($parameter->withValue(.75)));
         $this->assertFalse($resolver->canResolve($parameter->withValue([])));
         $this->assertFalse($resolver->canResolve($parameter->withValue(new \stdClass())));
-        $this->assertFalse($resolver->canResolve($parameter->withValue(function () {})));
+        $this->assertFalse($resolver->canResolve($parameter->withValue(function () {
+        })));
     }
 
     public function testCanResolveStaticStringsWithoutDecoratedResolver()

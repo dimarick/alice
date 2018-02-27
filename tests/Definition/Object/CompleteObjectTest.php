@@ -9,11 +9,22 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+/*
+ * This file is part of the Alice package.
+ *
+ * (c) Nelmio <hello@nelm.io>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Nelmio\Alice\Definition\Object;
 
-use PHPUnit\Framework\TestCase;
+use Nelmio\Alice\Definition\Value\FakeObject;
 use Nelmio\Alice\Entity\StdClassFactory;
 use Nelmio\Alice\ObjectInterface;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Nelmio\Alice\Definition\Object\CompleteObject
@@ -114,5 +125,16 @@ class CompleteObjectTest extends TestCase
 
         $this->assertEquals(new \stdClass(), $object->getInstance());
         $this->assertEquals(new \stdClass(), $clone->getInstance());
+    }
+
+    /**
+     * @expectedException \LogicException
+     * @expectedExceptionMessage Cannot create a new object from a complete object.
+     */
+    public function testCannotCreateANewInstance()
+    {
+        $object = new CompleteObject(new FakeObject());
+
+        $object->withInstance(null);
     }
 }

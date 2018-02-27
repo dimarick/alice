@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Nelmio\Alice\Definition\MethodCall;
 
 use Nelmio\Alice\Definition\MethodCallInterface;
+use Nelmio\Alice\Definition\ServiceReference\StaticReference;
 use Nelmio\Alice\Definition\ServiceReferenceInterface;
 use Nelmio\Alice\Definition\ValueInterface;
 
@@ -43,8 +44,6 @@ final class MethodCallWithReference implements MethodCallInterface
     private $stringValue;
 
     /**
-     * @param ServiceReferenceInterface   $caller
-     * @param string                      $method
      * @param ValueInterface[]|array|null $arguments
      */
     public function __construct(ServiceReferenceInterface $caller, string $method, array $arguments = null)
@@ -52,7 +51,12 @@ final class MethodCallWithReference implements MethodCallInterface
         $this->caller = clone $caller;
         $this->method = $method;
         $this->arguments = $arguments;
-        $this->stringValue = $caller->getId().$method;
+
+        if ($caller instanceof StaticReference) {
+            $this->stringValue = $caller->getId().'::'.$method;
+        } else {
+            $this->stringValue = $caller->getId().'->'.$method;
+        }
     }
 
     /**

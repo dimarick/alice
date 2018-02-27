@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Instantiator;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\DummyFixture;
 use Nelmio\Alice\Definition\Fixture\FakeFixture;
 use Nelmio\Alice\Definition\Object\SimpleObject;
@@ -23,7 +22,10 @@ use Nelmio\Alice\Generator\ResolvedFixtureSetFactory;
 use Nelmio\Alice\Generator\Resolver\Value\FakeValueResolver;
 use Nelmio\Alice\Generator\ValueResolverAwareInterface;
 use Nelmio\Alice\ObjectBag;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
+use stdClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Instantiator\InstantiatorRegistry
@@ -45,15 +47,12 @@ class InstantiatorRegistryTest extends TestCase
      */
     public function testThrowExceptionIfInvalidParserIsPassed()
     {
-        new InstantiatorRegistry([new \stdClass()]);
+        new InstantiatorRegistry([new stdClass()]);
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new InstantiatorRegistry([]);
+        $this->assertFalse((new ReflectionClass(InstantiatorRegistry::class))->isCloneable());
     }
 
     public function testPassValueResolverAwarenessPropertyToItsInstantiator()
@@ -109,7 +108,7 @@ class InstantiatorRegistryTest extends TestCase
             null,
             null,
             (new ObjectBag())
-                ->with(new SimpleObject('dummy', new \stdClass()))
+                ->with(new SimpleObject('dummy', new stdClass()))
         );
 
         $instantiator1Prophecy = $this->prophesize(ChainableInstantiatorInterface::class);

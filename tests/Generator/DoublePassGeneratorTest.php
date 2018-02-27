@@ -13,19 +13,19 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\DummyFixture;
 use Nelmio\Alice\Definition\Object\SimpleObject;
 use Nelmio\Alice\Entity\StdClassFactory;
 use Nelmio\Alice\FixtureBag;
 use Nelmio\Alice\FixtureSet;
-use Nelmio\Alice\Generator\Resolver\FixtureSet\FakeFixtureSetResolver;
 use Nelmio\Alice\GeneratorInterface;
 use Nelmio\Alice\ObjectBag;
 use Nelmio\Alice\ObjectSet;
 use Nelmio\Alice\Parameter;
 use Nelmio\Alice\ParameterBag;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\DoublePassGenerator
@@ -37,12 +37,9 @@ class DoublePassGeneratorTest extends TestCase
         $this->assertTrue(is_a(DoublePassGenerator::class, GeneratorInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new DoublePassGenerator(new FakeFixtureSetResolver(), new FakeObjectGenerator());
+        $this->assertFalse((new ReflectionClass(DoublePassGenerator::class))->isCloneable());
     }
 
     public function testGenerateObjects()

@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator;
 
+use Nelmio\Alice\Generator\Resolver\ResolvingContext;
 use Nelmio\Alice\Throwable\Exception\Generator\Context\CachedValueNotFound;
 use Nelmio\Alice\Throwable\Exception\Generator\Resolver\CircularReferenceException;
-use Nelmio\Alice\Generator\Resolver\ResolvingContext;
 
 final class GenerationContext
 {
@@ -39,6 +39,11 @@ final class GenerationContext
      */
     private $cache = [];
 
+    /**
+     * @var bool
+     */
+    private $retrieveCallResult = false;
+
     public function __construct()
     {
         $this->isFirstPass = true;
@@ -56,8 +61,6 @@ final class GenerationContext
     }
 
     /**
-     * @param string $id
-     *
      * @throws CircularReferenceException
      */
     public function markIsResolvingFixture(string $id)
@@ -86,9 +89,22 @@ final class GenerationContext
         $this->cache[$key] = $value;
     }
 
+    public function markRetrieveCallResult()
+    {
+        $this->retrieveCallResult = true;
+    }
+
+    public function unmarkRetrieveCallResult()
+    {
+        $this->retrieveCallResult = false;
+    }
+
+    public function needsCallResult(): bool
+    {
+        return $this->retrieveCallResult;
+    }
+
     /**
-     * @param string $key
-     *
      * @throws CachedValueNotFound
      *
      * @return mixed

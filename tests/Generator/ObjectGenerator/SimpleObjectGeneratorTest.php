@@ -22,20 +22,17 @@ use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\SimpleFixture;
 use Nelmio\Alice\Definition\Object\SimpleObject;
 use Nelmio\Alice\Definition\SpecificationBagFactory;
-use Nelmio\Alice\Generator\Caller\FakeCaller;
 use Nelmio\Alice\Generator\CallerInterface;
 use Nelmio\Alice\Generator\GenerationContext;
-use Nelmio\Alice\Generator\Instantiator\FakeInstantiator;
+use Nelmio\Alice\Generator\HydratorInterface;
 use Nelmio\Alice\Generator\InstantiatorInterface;
 use Nelmio\Alice\Generator\ObjectGeneratorInterface;
-use Nelmio\Alice\Generator\Hydrator\FakeHydrator;
-use Nelmio\Alice\Generator\HydratorInterface;
 use Nelmio\Alice\Generator\ResolvedFixtureSetFactory;
 use Nelmio\Alice\Generator\Resolver\Value\FakeValueResolver;
 use Nelmio\Alice\ObjectBag;
 use Prophecy\Argument;
+use ReflectionClass;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
-use Symfony\Component\PropertyAccess\PropertyAccessorBuilder;
 
 /**
  * @covers \Nelmio\Alice\Generator\ObjectGenerator\SimpleObjectGenerator
@@ -47,12 +44,9 @@ class SimpleObjectGeneratorTest extends TestCase
         $this->assertTrue(is_a(SimpleObjectGenerator::class, ObjectGeneratorInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new SimpleObjectGenerator(new FakeValueResolver(), new FakeInstantiator(), new FakeHydrator(), new FakeCaller());
+        $this->assertFalse((new ReflectionClass(SimpleObjectGenerator::class))->isCloneable());
     }
 
     /**

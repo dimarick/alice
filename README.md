@@ -4,7 +4,7 @@
 
 <h1 align=center>Alice - Expressive fixtures generator</h1>
 
-[![Package version](http://img.shields.io/packagist/vpre/nelmio/alice.svg?style=flat-square)](https://packagist.org/packages/nelmio/alice)
+[![Package version](https://img.shields.io/packagist/v/nelmio/alice.svg?style=flat-square)](https://packagist.org/packages/nelmio/alice)
 [![Build Status](https://img.shields.io/travis/nelmio/alice.svg?branch=master&style=flat-square)](https://travis-ci.org/nelmio/alice?branch=master)
 [![Slack](https://img.shields.io/badge/slack-%23alice--fixtures-red.svg?style=flat-square)](https://symfony-devs.slack.com/shared_invite/MTYxMjcxMjc0MTc5LTE0OTA3ODE4OTQtYzc4NWVmMzRmZQ)
 [![License](https://img.shields.io/badge/license-MIT-red.svg?style=flat-square)](LICENSE)
@@ -16,8 +16,8 @@ or testing your project. It gives you a few essential tools to make it
 very easy to generate complex data with constraints in a readable and easy
 to edit way, so that everyone on your team can tweak the fixtures if needed.
 
-**Warning: this doc is being updated for alice 3.0. If you want to check the
-documentation for 2.x, head [here](https://github.com/nelmio/alice/tree/2.x)**.
+**Warning: this doc is for alice 3.0. If you want to check the documentation
+for 2.x, head [here](https://github.com/nelmio/alice/tree/2.x)**.
 
 **2.x is in maintenance mode: PRs are accepted, but no active development is done on it by the maintainers any longer.**
 
@@ -39,7 +39,7 @@ documentation for 2.x, head [here](https://github.com/nelmio/alice/tree/2.x)**.
         1. [Method arguments with flags](doc/complete-reference.md#method-arguments-with-flags)
         1. [Method arguments with parameters](doc/complete-reference.md#method-arguments-with-parameters)
     1. [Specifying Constructor Arguments](doc/complete-reference.md#specifying-constructor-arguments)
-    1. [Using a factory](doc/complete-reference.md#using-a-factory)
+    1. [Using a factory / a named constructor](doc/complete-reference.md#using-a-factory--a-named-constructor)
     1. [Optional Data](doc/complete-reference.md#optional-data)
     1. [Handling Unique Constraints](doc/complete-reference.md#handling-unique-constraints)
 1. [Handling Relations](doc/relations-handling.md)
@@ -59,12 +59,12 @@ documentation for 2.x, head [here](https://github.com/nelmio/alice/tree/2.x)**.
         1. [Inject external parameters](#inject-external-parameters)
 1. [Customize Data Generation](doc/customizing-data-generation.md)
     1. [Faker Data](doc/customizing-data-generation.md#faker-data)
-    1. [Localized Fake Data](doc/customizing-data-generation.md#localized-fake-data) **TODO: port that change to v2**
-    1. [Default Providers](doc/customizing-data-generation.md#default-providers)
-        1. [Identity](doc/customizing-data-generation.md#identity)
-        1. [Current](doc/customizing-data-generation.md#current)
-        1. [Cast](doc/customizing-data-generation.md#cast)
-    1. [Reuse generated data using objects value](doc/customizing-data-generation.md#reuse-generated-data-using-objects-value)
+        1. [Localized Fake Data](doc/customizing-data-generation.md#localized-fake-data)
+        1. [Random data](doc/customizing-data-generation.md#random-data)
+        1. [Default Providers](doc/customizing-data-generation.md#default-providers)
+            1. [Identity](doc/customizing-data-generation.md#identity)
+            1. [Current](doc/customizing-data-generation.md#current)
+            1. [Cast](doc/customizing-data-generation.md#cast)
     1. [Custom Faker Data Providers](doc/customizing-data-generation.md#custom-faker-data-providers)
 1. [Advanced Guide](doc/advanced-guide.md#advanced-guide)
     1. [Performance](doc/advanced-guide.md#performance)
@@ -94,7 +94,9 @@ documentation for 2.x, head [here](https://github.com/nelmio/alice/tree/2.x)**.
     1. [Contributing](CONTRIBUTING.md#contributing)
         1. [Testing](CONTRIBUTING.md#testing)
         1. [Profiling](CONTRIBUTING.md#profiling)
+1. [Backward Compatibility Promise (BCP)](backward-compatibility-promise-bcp)
 1. [Upgrade](#upgrade)
+    1. [Breaking changes between Alice 2.x and 3.0](UPGRADE.md#breaking-changes-between-alice-2x-and-30)
 
 Other references:
   - [Tutorial: Using Alice in Symfony](https://knpuniversity.com/screencast/symfony-doctrine/fixtures-alice)
@@ -105,7 +107,7 @@ Other references:
 This is installable via [Composer](https://getcomposer.org/) as
 [nelmio/alice](https://packagist.org/packages/nelmio/alice):
 
-    composer require --dev nelmio/alice:^3.0@beta
+    composer require --dev nelmio/alice
 
 
 ## Example
@@ -168,6 +170,11 @@ For more information, refer to [the documentation](#table-of-contents).
 
 ## Third-party libraries
 
+### Framework Agnostic
+
+- [theofidry/AliceDataFixtures](https://github.com/theofidry/AliceDataFixtures)
+- [trappar/AliceGenerator](https://github.com/trappar/AliceGenerator)
+
 ### Symfony
 
 - [hautelook/AliceBundle](https://github.com/hautelook/AliceBundle)
@@ -175,7 +182,7 @@ For more information, refer to [the documentation](#table-of-contents).
 - [knplabs/rad-fixtures-load](https://github.com/KnpLabs/rad-fixtures-load)
 
 
-###  Nette
+### Nette
 
 -  [Zenify/DoctrineFixtures](https://github.com/Zenify/DoctrineFixtures)
 
@@ -183,16 +190,26 @@ For more information, refer to [the documentation](#table-of-contents).
 
 - [ma-si/aist-alice-fixtures](https://github.com/ma-si/aist-alice-fixtures)
 
-### Framework Agnostic
-
-- [trappar/AliceGenerator](https://github.com/trappar/AliceGenerator)
-
 
 ## Contribute
 
 Check the [contribution guide](CONTRIBUTING.md).
 
 
+## Backward Compatibility Promise (BCP)
+
+The policy is for the major part following the same as [Symfony's one][symfony-bc-policy] with a few changes or
+highlights:
+
+- Code marked with `@private` or `@internal` are excluded from the BCP
+- `Nelmio\Alice\Loader\NativeLoader` is excluded from the BCP: as it is the no DIC solution, registring a new service
+  may require a new method, in which case your code may break if you have already declared that method. To avoid that,
+  please beware of the naming of your methods to avoid any conflicts.
+
+
 ## Upgrade
 
 Check the [upgrade guide](UPGRADE.md).
+
+
+[symfony-bc-policy]: https://symfony.com/doc/current/contributing/code/bc.html

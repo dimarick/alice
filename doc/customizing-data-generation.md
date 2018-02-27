@@ -1,20 +1,20 @@
 # Customizing Data Generation
 
 1. [Faker Data](#faker-data)
-1. [Localized Fake Data](#localized-fake-data) **TODO: port that change to v2**
-1. [Default Providers](#default-providers)
-    1. [Identity](#identity)
-    1. [Current](#current)
-    1. [Cast](#cast)
-1. [Reuse generated data using objects value](#reuse-generated-data-using-objects-value)
+    1. [Localized Fake Data](#localized-fake-data)
+    1. [Random data](#random-data)
+    1. [Default Providers](#default-providers)
+        1. [Identity](#identity)
+        1. [Current](#current)
+        1. [Cast](#cast)
 1. [Custom Faker Data Providers](#custom-faker-data-providers)
 
 
 ## Faker Data
 
-Alice integrates with the [Faker](https://github.com/fzaninotto/Faker) library.
-Using `<foo()>` you can call Faker data providers to generate random data. Check
-the [list of Faker providers](https://github.com/fzaninotto/Faker#formatters).
+Alice integrates with the [Faker][1] library. Using `<foo()>` you can call Faker
+data providers to generate random data. Check the
+[list of Faker providers](https://github.com/fzaninotto/Faker#formatters).
 
 Let's turn our static bob user into a randomized entry:
 
@@ -32,11 +32,22 @@ As you see in the last line, you can also pass arguments to those just as if
 you were calling a function.
 
 
+### Random data
+
+The underlying [Faker][1] library is using a [seed for its data generators][2]
+which if set (this is the default) will ensure you will get the same data
+between two loadings.
+
+If you wish to generate different data on each loading, you can reset the seed
+by overriding the `getSeed()` method when using the `NativeLoader` or the
+the parameter `nelmio_alice.seed` if you are using Symfony.
+
+
 ### Localized Fake Data
 
 Faker can create localized data for addresses, phone numbers and so on. You can
 set the default locale to use by configuring the `locale` value used by Faker
-generator. With `NativeLoader`, this can be done by overridding the
+generator. With `NativeLoader`, this can be done by overriding the
 `createFakerGenerator()` method. In Symfony, override the
 `nelmio_alice.faker.generator` service.
 
@@ -176,7 +187,7 @@ final class JobProvider extends BaseProvider
 }
 ```
 
-Then you can add it to the Faker Generator used by Alice by either overridding
+Then you can add it to the Faker Generator used by Alice by either overriding
 the `NativeLoader::createFakerGenerator()` method or register it as a service
 with the tag `nelmio_alice.faker.provider`.
 
@@ -185,3 +196,7 @@ with the tag `nelmio_alice.faker.provider`.
 <hr />
 
 « [Keep Your Fixtures Dry](fixtures-refactoring.md) • [Table of Contents](../README.md#table-of-contents) »
+
+
+[1]: https://github.com/fzaninotto/Faker
+[2]: https://github.com/fzaninotto/Faker#seeding-the-generator

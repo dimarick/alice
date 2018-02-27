@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParser;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\FlagBag;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParserInterface;
+use PHPUnit\Framework\TestCase;
+use ReflectionObject;
 
 abstract class FlagParserTestCase extends TestCase
 {
@@ -24,12 +25,9 @@ abstract class FlagParserTestCase extends TestCase
      */
     protected $parser;
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone $this->parser;
+        $this->assertFalse((new ReflectionObject($this->parser))->isCloneable());
     }
 
     /**
@@ -92,6 +90,14 @@ abstract class FlagParserTestCase extends TestCase
      * @dataProvider provideUniques
      */
     public function testCanParseUniques(string $element, FlagBag $expected = null)
+    {
+        $this->assertCannotParse($element);
+    }
+
+    /**
+     * @dataProvider provideConfigurators
+     */
+    public function testCanParseConfigurators(string $element, FlagBag $expected = null)
     {
         $this->assertCannotParse($element);
     }
@@ -166,5 +172,10 @@ abstract class FlagParserTestCase extends TestCase
     public function provideUniques()
     {
         return Reference::getUniques();
+    }
+
+    public function provideConfigurators()
+    {
+        return Reference::getConfigurators();
     }
 }

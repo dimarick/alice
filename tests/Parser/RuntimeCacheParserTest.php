@@ -13,14 +13,15 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Parser;
 
-use PHPUnit\Framework\TestCase;
-use Nelmio\Alice\Throwable\Exception\FileLocator\FileNotFoundException;
-use Nelmio\Alice\FileLocator\FakeFileLocator;
 use Nelmio\Alice\FileLocatorInterface;
 use Nelmio\Alice\Parser\IncludeProcessor\DefaultIncludeProcessor;
 use Nelmio\Alice\Parser\IncludeProcessor\FakeIncludeProcessor;
 use Nelmio\Alice\ParserInterface;
+use Nelmio\Alice\Throwable\Exception\FileLocator\FileNotFoundException;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
+use stdClass;
 
 /**
  * @covers \Nelmio\Alice\Parser\RuntimeCacheParser
@@ -42,18 +43,15 @@ class RuntimeCacheParserTest extends TestCase
         $this->assertTrue(is_a(RuntimeCacheParser::class, ParserInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new RuntimeCacheParser(new FakeParser(), new FakeFileLocator(), new FakeIncludeProcessor());
+        $this->assertFalse((new ReflectionClass(RuntimeCacheParser::class))->isCloneable());
     }
 
     public function testCanParseFile()
     {
         $file = 'foo.php';
-        $expected = [new \stdClass()];
+        $expected = [new stdClass()];
 
         $fileLocatorProphecy = $this->prophesize(FileLocatorInterface::class);
         $fileLocatorProphecy->locate($file)->willReturn('/path/to/foo.php');

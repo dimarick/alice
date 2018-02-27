@@ -20,28 +20,24 @@
     ],
 
     "require": {
-        "php": "7.0 - 7.1",
+        "php": "^7.0",
         "fzaninotto/faker": "^1.6",
         "myclabs/deep-copy": "^1.5.2",
-        "symfony/property-access": "^2.7.11||^3.0",
-        "symfony/yaml": "^2.0||^3.0"
+        "symfony/property-access": "^2.7.11 || ^3.0 || ^4.0",
+        "symfony/yaml": "^2.7 || ^3.0 || ^4.0"
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.1.0",
-        "php-mock/php-mock": "^1.0",
+        "php-mock/php-mock": "^2.0",
         "phpspec/prophecy": "^1.6",
-        "phpunit/phpunit": "^5.6",
-        "symfony/phpunit-bridge": "^3.1",
-        "symfony/var-dumper": "^3.2"
-    },
-
-    "scripts": {
-        "post-install-cmd": ["@composer bin all install --ansi"]
+        "phpunit/phpunit": "^6.0",
+        "symfony/phpunit-bridge": "^3.3 || ^4.0",
+        "symfony/var-dumper": "^3.2 || ^4.0"
     },
 
     "autoload": {
         "files": [
-            "src/functions.php"
+            "src/deep_clone.php"
         ],
         "psr-4": {
             "Nelmio\\Alice\\": "src"
@@ -59,14 +55,17 @@
             ]
         }
     },
+    "suggest": {
+        "theofidry/alice-data-fixtures": "Wrapper for Alice to provide a persistence layer."
+    },
 
     "extra": {
         "bamarni-bin": {
             "bin-links": false
         },
         "branch-alias": {
-            "dev-master": "3.0.x-dev",
-            "dev-fixDoubleInitialization": "3.0.x-dev"
+            "dev-master": "3.1.0-dev",
+            "dev-fixDoubleInitialization": "3.1.x-dev"
         }
     },
     "config": {

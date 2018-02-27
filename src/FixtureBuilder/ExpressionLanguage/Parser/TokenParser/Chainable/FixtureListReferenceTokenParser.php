@@ -13,16 +13,15 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable;
 
-use Nelmio\Alice\Definition\Value\ChoiceListValue;
+use Nelmio\Alice\Definition\Value\ArrayValue;
 use Nelmio\Alice\Definition\Value\FixtureReferenceValue;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\NullListNameDenormalizer;
-use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ExpressionLanguageExceptionFactory;
-use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ParseException;
-use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable\ListNameDenormalizer;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\ChainableTokenParserInterface;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Token;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\TokenType;
 use Nelmio\Alice\IsAServiceTrait;
+use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ExpressionLanguageExceptionFactory;
+use Nelmio\Alice\Throwable\Exception\FixtureBuilder\ExpressionLanguage\ParseException;
 
 /**
  * @internal
@@ -63,12 +62,10 @@ final class FixtureListReferenceTokenParser implements ChainableTokenParserInter
     {
         $references = $this->buildReferences($token);
 
-        return new ChoiceListValue($references);
+        return new ArrayValue($references);
     }
 
     /**
-     * @param Token $token
-     *
      * @throws ParseException
      *
      * @return string[]
@@ -84,6 +81,7 @@ final class FixtureListReferenceTokenParser implements ChainableTokenParserInter
         if (1 !== preg_match(self::REGEX, $name, $matches)) {
             throw ExpressionLanguageExceptionFactory::createForUnparsableToken($token);
         }
+
         $listElements = preg_split('/\s*,\s*/', $matches['list']);
 
         $references = [];

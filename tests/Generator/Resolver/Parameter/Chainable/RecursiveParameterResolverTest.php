@@ -13,15 +13,16 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Resolver\Parameter\Chainable;
 
-use PHPUnit\Framework\TestCase;
-use Nelmio\Alice\Throwable\Exception\Generator\Resolver\RecursionLimitReachedException;
 use Nelmio\Alice\Generator\Resolver\ChainableParameterResolverInterface;
 use Nelmio\Alice\Generator\Resolver\FakeParameterResolver;
 use Nelmio\Alice\Generator\Resolver\ParameterResolverAwareInterface;
 use Nelmio\Alice\Generator\Resolver\ResolvingContext;
 use Nelmio\Alice\Parameter;
 use Nelmio\Alice\ParameterBag;
+use Nelmio\Alice\Throwable\Exception\Generator\Resolver\RecursionLimitReachedException;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Resolver\Parameter\Chainable\RecursiveParameterResolver
@@ -38,12 +39,9 @@ class RecursiveParameterResolverTest extends TestCase
         $this->assertTrue(is_a(RecursiveParameterResolver::class, ParameterResolverAwareInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new RecursiveParameterResolver(new FakeChainableParameterResolver());
+        $this->assertFalse((new ReflectionClass(RecursiveParameterResolver::class))->isCloneable());
     }
 
     public function testThrowsExceptionIfInvalidRecursionLimitGiven()

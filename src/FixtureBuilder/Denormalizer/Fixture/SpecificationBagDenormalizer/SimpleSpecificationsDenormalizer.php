@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationBagDenormalizer;
 
+use InvalidArgumentException;
 use Nelmio\Alice\Definition\MethodCall\NoMethodCall;
 use Nelmio\Alice\Definition\MethodCallBag;
 use Nelmio\Alice\Definition\MethodCallInterface;
@@ -22,6 +23,8 @@ use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\SpecificationsDenormalizerI
 use Nelmio\Alice\FixtureBuilder\Denormalizer\FlagParserInterface;
 use Nelmio\Alice\FixtureInterface;
 use Nelmio\Alice\Throwable\Error\TypeErrorFactory;
+use Nelmio\Alice\Throwable\Exception\FixtureBuilder\Denormalizer\DenormalizerExceptionFactory;
+use Nelmio\Alice\Throwable\Exception\LogicExceptionFactory;
 
 final class SimpleSpecificationsDenormalizer implements SpecificationsDenormalizerInterface
 {
@@ -44,8 +47,7 @@ final class SimpleSpecificationsDenormalizer implements SpecificationsDenormaliz
         ConstructorDenormalizerInterface $constructorDenormalizer,
         PropertyDenormalizerInterface $propertyDenormalizer,
         CallsDenormalizerInterface $callsDenormalizer
-    )
-    {
+    ) {
         $this->constructorDenormalizer = $constructorDenormalizer;
         $this->propertyDenormalizer = $propertyDenormalizer;
         $this->callsDenormalizer = $callsDenormalizer;
@@ -61,8 +63,35 @@ final class SimpleSpecificationsDenormalizer implements SpecificationsDenormaliz
         $calls = new MethodCallBag();
 
         foreach ($unparsedSpecs as $unparsedPropertyName => $value) {
+            if (false === is_string($unparsedPropertyName)) {
+                throw new InvalidArgumentException(
+                    sprintf(
+                        'Invalid property name: %s.',
+                        $unparsedPropertyName
+                    )
+                );
+            }
+
             if ('__construct' === $unparsedPropertyName) {
                 $constructor = $this->denormalizeConstructor($value, $scope, $parser);
+
+                if (false === ($constructor instanceof NoMethodCall) && '__construct' !== $constructor->getMethod()) {
+                    @trigger_error(
+                        'Using factories with the fixture keyword "__construct" has been deprecated since '
+                        .'3.0.0 and will no longer be supported in Alice 4.0.0. Use "__factory" instead.',
+                        E_USER_DEPRECATED
+                    );
+                }
+
+                continue;
+            }
+
+            if ('__factory' === $unparsedPropertyName) {
+                if (null !== $constructor) {
+                    throw LogicExceptionFactory::createForCannotHaveBothConstructorAndFactory();
+                }
+
+                $constructor = $this->denormalizeFactory($value, $scope, $parser);
 
                 continue;
             }
@@ -83,12 +112,25 @@ final class SimpleSpecificationsDenormalizer implements SpecificationsDenormaliz
         $value,
         FixtureInterface $scope,
         FlagParserInterface $parser
-    ): MethodCallInterface
-    {
+    ): MethodCallInterface {
         return (false === $value)
             ? new NoMethodCall()
             : $this->constructorDenormalizer->denormalize($scope, $parser, $value)
         ;
+    }
+
+    private function denormalizeFactory(
+        $value,
+        FixtureInterface $scope,
+        FlagParserInterface $parser
+    ): MethodCallInterface {
+        $factory = $this->denormalizeConstructor($value, $scope, $parser);
+
+        if ('__construct' === $factory->getMethod()) {
+            throw DenormalizerExceptionFactory::createForUndenormalizableFactory();
+        }
+
+        return $factory;
     }
 
     private function denormalizeProperty(
@@ -98,8 +140,7 @@ final class SimpleSpecificationsDenormalizer implements SpecificationsDenormaliz
         $value,
         PropertyBag $properties,
         FixtureInterface $scope
-    ): PropertyBag
-    {
+    ): PropertyBag {
         $flags = $flagParser->parse($unparsedPropertyName);
         $propertyName = $flags->getKey();
 
@@ -114,8 +155,7 @@ final class SimpleSpecificationsDenormalizer implements SpecificationsDenormaliz
         MethodCallBag $calls,
         FixtureInterface $scope,
         FlagParserInterface $parser
-    ): MethodCallBag
-    {
+    ): MethodCallBag {
         foreach ($value as $methodCall) {
             $methodCall = $this->denormalizeCallMethod($callsDenormalizer, $methodCall, $scope, $parser);
             $calls = $calls->with($methodCall);
@@ -129,11 +169,11 @@ final class SimpleSpecificationsDenormalizer implements SpecificationsDenormaliz
         $methodCall,
         FixtureInterface $scope,
         FlagParserInterface $parser
-    ): MethodCallInterface
-    {
+    ): MethodCallInterface {
         if (false === is_array($methodCall)) {
             throw TypeErrorFactory::createForInvalidSpecificationBagMethodCall($methodCall);
         }
+
         $unparsedMethod = key($methodCall);
         if (false === is_string($unparsedMethod)) {
             throw TypeErrorFactory::createForInvalidSpecificationBagMethodCallName($unparsedMethod);

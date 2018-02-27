@@ -13,18 +13,17 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Throwable\Exception\Generator\Instantiator;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\DummyFixture;
 use Nelmio\Alice\Definition\Fixture\SimpleFixture;
 use Nelmio\Alice\Definition\SpecificationBagFactory;
-use Nelmio\Alice\Throwable\InstantiationThrowable;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Nelmio\Alice\Throwable\Exception\Generator\Instantiator\InstantiationExceptionFactory
  */
 class InstantiationExceptionFactoryTest extends TestCase
 {
-    public function testTestCreate()
+    public function testCreate()
     {
         $code = 500;
         $previous = new \Error();
@@ -38,7 +37,7 @@ class InstantiationExceptionFactoryTest extends TestCase
         $this->assertSame($previous, $exception->getPrevious());
     }
 
-    public function testTestCreateForNonPublicConstructor()
+    public function testCreateForNonPublicConstructor()
     {
         $exception = InstantiationExceptionFactory::createForNonPublicConstructor(
             new SimpleFixture('foo', 'Dummy', SpecificationBagFactory::create())
@@ -52,7 +51,7 @@ class InstantiationExceptionFactoryTest extends TestCase
         $this->assertNull($exception->getPrevious());
     }
 
-    public function testTestCreateForConstructorIsMissingMandatoryParameters()
+    public function testCreateForConstructorIsMissingMandatoryParameters()
     {
         $exception = InstantiationExceptionFactory::createForConstructorIsMissingMandatoryParameters(
             new DummyFixture('foo')
@@ -66,7 +65,7 @@ class InstantiationExceptionFactoryTest extends TestCase
         $this->assertNull($exception->getPrevious());
     }
 
-    public function testTestCreateForCouldNotGetConstructorData()
+    public function testCreateForCouldNotGetConstructorData()
     {
         $exception = InstantiationExceptionFactory::createForCouldNotGetConstructorData(
             new DummyFixture('foo')
@@ -80,7 +79,7 @@ class InstantiationExceptionFactoryTest extends TestCase
         $this->assertNull($exception->getPrevious());
     }
 
-    public function testTestCreateForInvalidInstanceType()
+    public function testCreateForInvalidInstanceType()
     {
         $exception = InstantiationExceptionFactory::createForInvalidInstanceType(
             new SimpleFixture('foo', 'Dummy', SpecificationBagFactory::create()),
@@ -95,7 +94,7 @@ class InstantiationExceptionFactoryTest extends TestCase
         $this->assertNull($exception->getPrevious());
     }
 
-    public function testTestCreateForInstantiatorNotFoundForFixture()
+    public function testCreateForInstantiatorNotFoundForFixture()
     {
         $exception = InstantiationExceptionFactory::createForInstantiatorNotFoundForFixture(
             new DummyFixture('foo')

@@ -13,18 +13,19 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Throwable\Exception\Generator\Resolver;
 
-use PHPUnit\Framework\TestCase;
+use Error;
 use Nelmio\Alice\Definition\Fixture\SimpleFixture;
 use Nelmio\Alice\Definition\SpecificationBagFactory;
 use Nelmio\Alice\Definition\Value\FakeValue;
 use Nelmio\Alice\Definition\Value\FixturePropertyValue;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Nelmio\Alice\Throwable\Exception\Generator\Resolver\NoSuchPropertyExceptionFactory
  */
 class NoSuchPropertyExceptionFactoryTest extends TestCase
 {
-    public function testTestCreateForFixture()
+    public function testCreateForFixture()
     {
         $fixture = new SimpleFixture('dummy', 'Dummy', SpecificationBagFactory::create());
         $property = new FixturePropertyValue(new FakeValue(), 'foo');
@@ -40,7 +41,7 @@ class NoSuchPropertyExceptionFactoryTest extends TestCase
 
 
         $code = 500;
-        $previous = new \Error();
+        $previous = new Error();
 
         $exception = NoSuchPropertyExceptionFactory::createForFixture($fixture, $property, $code, $previous);
 
@@ -52,4 +53,3 @@ class NoSuchPropertyExceptionFactoryTest extends TestCase
         $this->assertSame($previous, $exception->getPrevious());
     }
 }
-

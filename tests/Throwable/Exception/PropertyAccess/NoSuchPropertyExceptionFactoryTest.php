@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Nelmio\Alice\Throwable\Exception\PropertyAccess;
 
@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  */
 class NoSuchPropertyExceptionFactoryTest extends TestCase
 {
-    public function testTestCreateForUnreadablePropertyFromStdClass()
+    public function testCreateForUnreadablePropertyFromStdClass()
     {
         $exception = NoSuchPropertyExceptionFactory::createForUnreadablePropertyFromStdClass('foo');
 

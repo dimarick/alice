@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Nelmio\Alice\Definition\Object;
 
@@ -51,6 +51,14 @@ class ImmutableByCloneObject implements ObjectInterface
     public function getInstance()
     {
         return $this->instance;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function withInstance($newInstance)
+    {
+        return new self($this->id, $newInstance);
     }
 
     public function __clone()

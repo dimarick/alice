@@ -15,6 +15,7 @@ namespace Nelmio\Alice\Definition\Value;
 
 use Nelmio\Alice\Definition\ValueInterface;
 use Nelmio\Alice\Throwable\Error\TypeErrorFactory;
+use function Nelmio\Alice\deep_clone;
 
 /**
  * Value object representing '<{param}>'.
@@ -34,6 +35,7 @@ final class ParameterValue implements ValueInterface
         if (false === is_string($parameterKey) && false === $parameterKey instanceof ValueInterface) {
             throw TypeErrorFactory::createForInvalidParameterKey($parameterKey);
         }
+
         $this->parameterKey = $parameterKey;
     }
 

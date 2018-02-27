@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Instantiator;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\DummyFixture;
 use Nelmio\Alice\Definition\Object\SimpleObject;
 use Nelmio\Alice\Generator\GenerationContext;
@@ -21,7 +20,9 @@ use Nelmio\Alice\Generator\InstantiatorInterface;
 use Nelmio\Alice\Generator\ResolvedFixtureSetFactory;
 use Nelmio\Alice\Generator\ValueResolverAwareInterface;
 use Nelmio\Alice\ObjectBag;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Instantiator\ExistingInstanceInstantiator
@@ -38,12 +39,9 @@ class ExistingInstanceInstantiatorTest extends TestCase
         $this->assertTrue(is_a(ExistingInstanceInstantiator::class, ValueResolverAwareInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new ExistingInstanceInstantiator(new FakeInstantiator());
+        $this->assertFalse((new ReflectionClass(ExistingInstanceInstantiator::class))->isCloneable());
     }
 
     public function testReturnsUnchangedSetIfFixtureHasAlreadyBeenInstantiated()

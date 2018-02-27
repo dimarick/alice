@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Resolver\Value\Chainable;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\FakeFixture;
 use Nelmio\Alice\Definition\Fixture\SimpleFixture;
 use Nelmio\Alice\Definition\SpecificationBagFactory;
@@ -21,8 +20,6 @@ use Nelmio\Alice\Definition\Value\DummyValue;
 use Nelmio\Alice\Definition\Value\FakeValue;
 use Nelmio\Alice\Definition\Value\FixturePropertyValue;
 use Nelmio\Alice\Entity\Hydrator\Dummy;
-use Nelmio\Alice\Throwable\Exception\Generator\Resolver\NoSuchPropertyException;
-use Nelmio\Alice\Throwable\Exception\Generator\Resolver\UnresolvableValueException;
 use Nelmio\Alice\Generator\GenerationContext;
 use Nelmio\Alice\Generator\ResolvedFixtureSetFactory;
 use Nelmio\Alice\Generator\ResolvedValueWithFixtureSet;
@@ -31,7 +28,11 @@ use Nelmio\Alice\Generator\Resolver\Value\FakeValueResolver;
 use Nelmio\Alice\Generator\ValueResolverInterface;
 use Nelmio\Alice\ParameterBag;
 use Nelmio\Alice\Symfony\PropertyAccess\FakePropertyAccessor;
+use Nelmio\Alice\Throwable\Exception\Generator\Resolver\NoSuchPropertyException;
+use Nelmio\Alice\Throwable\Exception\Generator\Resolver\UnresolvableValueException;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
@@ -45,12 +46,9 @@ class FixturePropertyReferenceResolverTest extends TestCase
         $this->assertTrue(is_a(FixturePropertyReferenceResolver::class, ChainableValueResolverInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new FixturePropertyReferenceResolver(new FakePropertyAccessor());
+        $this->assertFalse((new ReflectionClass(FixturePropertyReferenceResolver::class))->isCloneable());
     }
 
     public function testWithersReturnNewModifiedInstance()
@@ -167,7 +165,7 @@ class FixturePropertyReferenceResolverTest extends TestCase
         }
     }
 
-    public function testTestResolutionWithSymfonyPropertyAccessor()
+    public function testResolutionWithSymfonyPropertyAccessor()
     {
         $value = new FixturePropertyValue(
             $reference = new FakeValue(),
@@ -268,6 +266,5 @@ class FixturePropertyReferenceResolverTest extends TestCase
             $this->assertEquals(0, $exception->getCode());
             $this->assertNotNull($exception->getPrevious());
         }
-
     }
 }

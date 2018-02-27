@@ -40,7 +40,6 @@ final class PhpFunctionCallValueResolver implements ChainableValueResolverInterf
     /**
      * @param string[]               $functionBlacklist List of PHP native function that will be skipped, i.e. will be
      *                                                  considered as non existent
-     * @param ValueResolverInterface $decoratedResolver
      */
     public function __construct(array $functionBlacklist, ValueResolverInterface $decoratedResolver)
     {
@@ -67,8 +66,7 @@ final class PhpFunctionCallValueResolver implements ChainableValueResolverInterf
         ResolvedFixtureSet $fixtureSet,
         array $scope,
         GenerationContext $context
-    ): ResolvedValueWithFixtureSet
-    {
+    ): ResolvedValueWithFixtureSet {
         $functionName = $value->getName();
         if (false === function_exists($functionName)
             || array_key_exists($functionName, $this->functionBlacklist)

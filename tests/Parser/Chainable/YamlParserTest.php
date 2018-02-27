@@ -13,13 +13,15 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Parser\Chainable;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Parser\ChainableParserInterface;
 use Nelmio\Alice\Parser\FileListProviderTrait;
 use Nelmio\Alice\Throwable\Exception\Parser\UnparsableFileException;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 use Symfony\Component\Yaml\Exception\ParseException as SymfonyParseException;
 use Symfony\Component\Yaml\Parser as SymfonyYamlParser;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * @covers \Nelmio\Alice\Parser\Chainable\YamlParser
@@ -73,12 +75,9 @@ class YamlParserTest extends TestCase
         $this->assertTrue(is_a(YamlParser::class, ChainableParserInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone $this->parser;
+        $this->assertFalse((new ReflectionClass(YamlParser::class))->isCloneable());
     }
 
     /**
@@ -143,7 +142,12 @@ EOF;
         $expected = [new \stdClass()];
 
         $symfonyYamlParserProphecy = $this->prophesize(SymfonyYamlParser::class);
-        $symfonyYamlParserProphecy->parse($fileContent)->willReturn($expected);
+        if (defined('Symfony\\Component\\Yaml\\Yaml::PARSE_CONSTANT')) {
+            $symfonyYamlParserProphecy->parse($fileContent, Yaml::PARSE_CONSTANT)->willReturn($expected);
+        } else {
+            $symfonyYamlParserProphecy->parse($fileContent)->willReturn($expected);
+        }
+
         /* @var SymfonyYamlParser $symfonyYamlParser */
         $symfonyYamlParser = $symfonyYamlParserProphecy->reveal();
 
@@ -152,7 +156,7 @@ EOF;
 
         $this->assertSame($expected, $actual);
 
-        $symfonyYamlParserProphecy->parse(Argument::any())->shouldBeCalledTimes(1);
+        $symfonyYamlParserProphecy->parse(Argument::cetera())->shouldBeCalledTimes(1);
     }
 
     public function testReturnsParsedFileContent()
@@ -167,6 +171,29 @@ EOF;
                 'Nelmio\Alice\Model\User' => [
                     'user0' => [
                         'fullname' => 'John Doe',
+                    ],
+                ],
+            ],
+            $actual
+        );
+    }
+
+    public function testParseReturnsInterpretedConstants()
+    {
+        if (!defined('Symfony\\Component\\Yaml\\Yaml::PARSE_CONSTANT')) {
+            $this->markTestSkipped('This test needs symfony/yaml v3.2 or higher.');
+        }
+
+        $symfonyParser = new SymfonyYamlParser();
+
+        $parser = new YamlParser($symfonyParser);
+        $actual = $parser->parse(self::$dir.'/constants.yml');
+
+        $this->assertSame(
+            [
+                'Nelmio\Alice\Model\User' => [
+                    'user0' => [
+                        'max_int' => PHP_INT_MAX,
                     ],
                 ],
             ],
@@ -190,7 +217,7 @@ EOF;
             $file = self::$dir.'/basic.yml';
 
             $symfonyYamlParserProphecy = $this->prophesize(SymfonyYamlParser::class);
-            $symfonyYamlParserProphecy->parse(Argument::any())->willThrow(SymfonyParseException::class);
+            $symfonyYamlParserProphecy->parse(Argument::cetera())->willThrow(SymfonyParseException::class);
             /* @var SymfonyYamlParser $symfonyYamlParser */
             $symfonyYamlParser = $symfonyYamlParserProphecy->reveal();
 

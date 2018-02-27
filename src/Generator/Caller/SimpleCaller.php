@@ -21,6 +21,7 @@ use Nelmio\Alice\Generator\GenerationContext;
 use Nelmio\Alice\Generator\ResolvedFixtureSet;
 use Nelmio\Alice\Generator\ValueResolverAwareInterface;
 use Nelmio\Alice\Generator\ValueResolverInterface;
+use Nelmio\Alice\IsAServiceTrait;
 use Nelmio\Alice\ObjectInterface;
 use Nelmio\Alice\Throwable\Exception\Generator\Resolver\ResolverNotFoundExceptionFactory;
 use Nelmio\Alice\Throwable\Exception\Generator\Resolver\UnresolvableValueDuringGenerationExceptionFactory;
@@ -28,13 +29,21 @@ use Nelmio\Alice\Throwable\ResolutionThrowable;
 
 final class SimpleCaller implements CallerInterface, ValueResolverAwareInterface
 {
+    use IsAServiceTrait;
+
+    /**
+     * @var CallProcessorInterface
+     */
+    private $callProcessor;
+
     /**
      * @var ValueResolverInterface
      */
     private $resolver;
 
-    public function __construct(ValueResolverInterface $resolver = null)
+    public function __construct(CallProcessorInterface $callProcessor, ValueResolverInterface $resolver = null)
     {
+        $this->callProcessor = $callProcessor;
         $this->resolver = $resolver;
     }
 
@@ -43,7 +52,7 @@ final class SimpleCaller implements CallerInterface, ValueResolverAwareInterface
      */
     public function withValueResolver(ValueResolverInterface $resolver): self
     {
-        return new self($resolver);
+        return new self($this->callProcessor, $resolver);
     }
 
     /**
@@ -61,20 +70,17 @@ final class SimpleCaller implements CallerInterface, ValueResolverAwareInterface
         $fixture = $fixtureSet->getFixtures()->get($object->getId());
         $calls = $fixture->getSpecs()->getMethodCalls();
 
-        $scope = [
-            '_instances' => $fixtureSet->getObjects()->toArray(),
-        ];
-
         foreach ($calls as $methodCall) {
+            $scope = [
+                '_instances' => $fixtureSet->getObjects()->toArray(),
+            ];
+
             list($methodCall, $fixtureSet) = $this->processArguments($methodCall, $fixture, $fixtureSet, $scope, $context);
 
-            $instance = $object->getInstance();
-            $instance->{$methodCall->getMethod()}(...$methodCall->getArguments());
+            $fixtureSet = $this->callProcessor->process($object, $fixtureSet, $context, $methodCall);
         }
 
-        return $fixtureSet->withObjects(
-            $fixtureSet->getObjects()->with($object)
-        );
+        return $fixtureSet;
     }
 
     private function processArguments(
@@ -97,6 +103,7 @@ final class SimpleCaller implements CallerInterface, ValueResolverAwareInterface
                 } catch (ResolutionThrowable $throwable) {
                     throw UnresolvableValueDuringGenerationExceptionFactory::createFromResolutionThrowable($throwable);
                 }
+
                 list($value, $fixtureSet) = [$result->getValue(), $result->getSet()];
             }
         }

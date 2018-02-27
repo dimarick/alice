@@ -13,13 +13,13 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\Chainable;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\FlagBag;
 use Nelmio\Alice\FixtureBag;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\ChainableFixtureDenormalizerInterface;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\FixtureDenormalizerInterface;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\FixtureFactory;
 use Nelmio\Alice\FixtureBuilder\Denormalizer\Fixture\ReferenceProviderTrait;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 
 abstract class ChainableDenormalizerTest extends TestCase
@@ -71,7 +71,6 @@ abstract class ChainableDenormalizerTest extends TestCase
     }
 
     /**
-     * @param string     $fixtureId
      * @param array|null $expected
      */
     public function assertBuiltResultIsTheSame(string $fixtureId, array $expected)
@@ -89,6 +88,7 @@ abstract class ChainableDenormalizerTest extends TestCase
         foreach ($expected as $item) {
             $expectedFixtures = $expectedFixtures->with($item);
         }
+
         $this->assertEquals($expectedFixtures, $actual);
     }
 

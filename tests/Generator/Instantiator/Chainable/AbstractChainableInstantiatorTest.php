@@ -13,11 +13,9 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Instantiator\Chainable;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\DummyFixture;
 use Nelmio\Alice\Definition\Object\SimpleObject;
 use Nelmio\Alice\Dummy;
-use Nelmio\Alice\Throwable\Exception\Generator\Instantiator\InstantiationException;
 use Nelmio\Alice\FixtureBag;
 use Nelmio\Alice\Generator\GenerationContext;
 use Nelmio\Alice\Generator\Instantiator\ChainableInstantiatorInterface;
@@ -25,7 +23,10 @@ use Nelmio\Alice\Generator\ResolvedFixtureSet;
 use Nelmio\Alice\Generator\ResolvedFixtureSetFactory;
 use Nelmio\Alice\ObjectBag;
 use Nelmio\Alice\ParameterBag;
+use Nelmio\Alice\Throwable\Exception\Generator\Instantiator\InstantiationException;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Instantiator\Chainable\AbstractChainableInstantiator
@@ -50,12 +51,9 @@ class AbstractChainableInstantiatorTest extends TestCase
         $this->assertTrue(is_a(AbstractChainableInstantiator::class, ChainableInstantiatorInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone $this->instantiator;
+        $this->assertFalse((new ReflectionClass(AbstractChainableInstantiator::class))->isCloneable());
     }
 
     public function testThrowsExceptionIfCannotCreateInstance()

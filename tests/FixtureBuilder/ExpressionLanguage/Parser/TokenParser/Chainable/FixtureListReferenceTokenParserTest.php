@@ -13,12 +13,13 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable;
 
-use PHPUnit\Framework\TestCase;
-use Nelmio\Alice\Definition\Value\ChoiceListValue;
+use Nelmio\Alice\Definition\Value\ArrayValue;
 use Nelmio\Alice\Definition\Value\FixtureReferenceValue;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\ChainableTokenParserInterface;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Token;
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\TokenType;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Parser\TokenParser\Chainable\FixtureListReferenceTokenParser
@@ -30,12 +31,9 @@ class FixtureListReferenceTokenParserTest extends TestCase
         $this->assertTrue(is_a(FixtureListReferenceTokenParser::class, ChainableTokenParserInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new FixtureListReferenceTokenParser();
+        $this->assertFalse((new ReflectionClass(FixtureListReferenceTokenParser::class))->isCloneable());
     }
 
     /**
@@ -76,7 +74,7 @@ class FixtureListReferenceTokenParserTest extends TestCase
     public function testReturnsListOfPossibleValues()
     {
         $token = new Token('@user_{alice, bob}', new TokenType(TokenType::LIST_REFERENCE_TYPE));
-        $expected = new ChoiceListValue([
+        $expected = new ArrayValue([
             new FixtureReferenceValue('user_alice'),
             new FixtureReferenceValue('user_bob'),
         ]);

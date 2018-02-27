@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  */
 class ObjectGeneratorNotFoundExceptionFactoryTest extends TestCase
 {
-    public function testTestCreateNewExceptionWithFactory()
+    public function testCreateNewExceptionWithFactory()
     {
         $exception = ObjectGeneratorNotFoundExceptionFactory::createUnexpectedCall('dummyMethod');
 
@@ -32,4 +32,3 @@ class ObjectGeneratorNotFoundExceptionFactoryTest extends TestCase
         $this->assertNull($exception->getPrevious());
     }
 }
-

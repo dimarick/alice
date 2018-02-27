@@ -14,13 +14,15 @@ declare(strict_types=1);
 namespace Nelmio\Alice\Bridge\Symfony\FixtureBuilder\ExpressionLanguage\Lexer;
 
 use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\IsolatedSymfonyBuiltInLexer;
+use Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\LexerIntegrationTest as CoreLexerIntegrationTest;
 
 /**
  * {@inheritdoc}
  *
  * @group integration
+ * @coversNothing
  */
-class LexerIntegrationTest extends \Nelmio\Alice\FixtureBuilder\ExpressionLanguage\Lexer\LexerIntegrationTest
+class LexerIntegrationTest extends CoreLexerIntegrationTest
 {
     /**
      * @inheritdoc

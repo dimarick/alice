@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Resolver\Value\Chainable;
 
-use PHPUnit\Framework\TestCase;
 use Nelmio\Alice\Definition\Fixture\SimpleFixture;
 use Nelmio\Alice\Definition\SpecificationBagFactory;
 use Nelmio\Alice\Definition\Value\FakeValue;
@@ -29,7 +28,9 @@ use Nelmio\Alice\Generator\Resolver\Value\FakeChainableValueResolver;
 use Nelmio\Alice\Generator\Resolver\Value\FakeValueResolver;
 use Nelmio\Alice\Generator\ValueResolverAwareInterface;
 use Nelmio\Alice\ObjectBag;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Resolver\Value\Chainable\SelfFixtureReferenceResolver
@@ -51,12 +52,9 @@ class SelfFixtureReferenceResolverTest extends TestCase
         $this->assertTrue(is_a(SelfFixtureReferenceResolver::class, ValueResolverAwareInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new SelfFixtureReferenceResolver(new FakeChainableValueResolver());
+        $this->assertFalse((new ReflectionClass(SelfFixtureReferenceResolver::class))->isCloneable());
     }
 
     public function testCanResolveTheValueResolvableByItsDecoratedResolver()

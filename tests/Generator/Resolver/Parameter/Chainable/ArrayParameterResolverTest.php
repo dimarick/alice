@@ -13,15 +13,16 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Resolver\Parameter\Chainable;
 
-use PHPUnit\Framework\TestCase;
+use Nelmio\Alice\Generator\Resolver\ChainableParameterResolverInterface;
 use Nelmio\Alice\Generator\Resolver\FakeParameterResolver;
+use Nelmio\Alice\Generator\Resolver\ParameterResolverAwareInterface;
+use Nelmio\Alice\Generator\Resolver\ParameterResolverInterface;
 use Nelmio\Alice\Generator\Resolver\ResolvingContext;
 use Nelmio\Alice\Parameter;
 use Nelmio\Alice\ParameterBag;
-use Nelmio\Alice\Generator\Resolver\ChainableParameterResolverInterface;
-use Nelmio\Alice\Generator\Resolver\ParameterResolverAwareInterface;
-use Nelmio\Alice\Generator\Resolver\ParameterResolverInterface;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use ReflectionClass;
 
 /**
  * @covers \Nelmio\Alice\Generator\Resolver\Parameter\Chainable\ArrayParameterResolver
@@ -38,12 +39,9 @@ class ArrayParameterResolverTest extends TestCase
         $this->assertTrue(is_a(ArrayParameterResolver::class, ParameterResolverAwareInterface::class, true));
     }
 
-    /**
-     * @expectedException \Nelmio\Alice\Throwable\Exception\UnclonableException
-     */
     public function testIsNotClonable()
     {
-        clone new ArrayParameterResolver();
+        $this->assertFalse((new ReflectionClass(ArrayParameterResolver::class))->isCloneable());
     }
 
     public function testCanBeInstantiatedWithoutAResolver()
@@ -80,7 +78,8 @@ class ArrayParameterResolverTest extends TestCase
         $this->assertFalse($resolver->canResolve($parameter->withValue(.75)));
         $this->assertFalse($resolver->canResolve($parameter->withValue('string')));
         $this->assertFalse($resolver->canResolve($parameter->withValue(new \stdClass())));
-        $this->assertFalse($resolver->canResolve($parameter->withValue(function () {})));
+        $this->assertFalse($resolver->canResolve($parameter->withValue(function () {
+        })));
     }
 
     /**

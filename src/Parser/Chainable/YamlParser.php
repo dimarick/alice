@@ -13,13 +13,14 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Parser\Chainable;
 
+use Nelmio\Alice\IsAServiceTrait;
+use Nelmio\Alice\Parser\ChainableParserInterface;
 use Nelmio\Alice\Throwable\Exception\InvalidArgumentExceptionFactory;
 use Nelmio\Alice\Throwable\Exception\Parser\ParseException;
-use Nelmio\Alice\Parser\ChainableParserInterface;
-use Nelmio\Alice\IsAServiceTrait;
 use Nelmio\Alice\Throwable\Exception\Parser\ParseExceptionFactory;
 use Symfony\Component\Yaml\Exception\ParseException as SymfonyParseException;
 use Symfony\Component\Yaml\Parser as SymfonyYamlParser;
+use Symfony\Component\Yaml\Yaml;
 
 final class YamlParser implements ChainableParserInterface
 {
@@ -64,7 +65,9 @@ final class YamlParser implements ChainableParserInterface
         }
 
         try {
-            $data = $this->yamlParser->parse(file_get_contents($file));
+            $data = defined('Symfony\\Component\\Yaml\\Yaml::PARSE_CONSTANT')
+                ? $this->yamlParser->parse(file_get_contents($file), Yaml::PARSE_CONSTANT)
+                : $this->yamlParser->parse(file_get_contents($file));
 
             // $data is null only if the YAML file was empty; otherwise an exception is thrown
             return (null === $data) ? [] : $data;
@@ -72,6 +75,7 @@ final class YamlParser implements ChainableParserInterface
             if ($exception instanceof SymfonyParseException) {
                 throw ParseExceptionFactory::createForInvalidYaml($file, 0, $exception);
             }
+
             throw ParseExceptionFactory::createForUnparsableFile($file, 0, $exception);
         }
     }

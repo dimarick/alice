@@ -13,16 +13,16 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Generator\Resolver\Parameter\Chainable;
 
-use Nelmio\Alice\Throwable\Exception\Generator\Resolver\RecursionLimitReachedException;
-use Nelmio\Alice\Throwable\Exception\Generator\Resolver\RecursionLimitReachedExceptionFactory;
-use Nelmio\Alice\Throwable\Exception\InvalidArgumentExceptionFactory;
+use Nelmio\Alice\Generator\Resolver\ChainableParameterResolverInterface;
+use Nelmio\Alice\Generator\Resolver\ParameterResolverAwareInterface;
+use Nelmio\Alice\Generator\Resolver\ParameterResolverInterface;
 use Nelmio\Alice\Generator\Resolver\ResolvingContext;
 use Nelmio\Alice\IsAServiceTrait;
 use Nelmio\Alice\Parameter;
 use Nelmio\Alice\ParameterBag;
-use Nelmio\Alice\Generator\Resolver\ChainableParameterResolverInterface;
-use Nelmio\Alice\Generator\Resolver\ParameterResolverAwareInterface;
-use Nelmio\Alice\Generator\Resolver\ParameterResolverInterface;
+use Nelmio\Alice\Throwable\Exception\Generator\Resolver\RecursionLimitReachedException;
+use Nelmio\Alice\Throwable\Exception\Generator\Resolver\RecursionLimitReachedExceptionFactory;
+use Nelmio\Alice\Throwable\Exception\InvalidArgumentExceptionFactory;
 
 /**
  * Decorates a chainable resolver to be able to apply it recursively.
@@ -48,6 +48,7 @@ final class RecursiveParameterResolver implements ChainableParameterResolverInte
         if (2 >= $limit) {
             throw InvalidArgumentExceptionFactory::createForInvalidLimitValueForRecursiveCalls($limit);
         }
+
         $this->limit = $limit;
     }
 
@@ -78,8 +79,6 @@ final class RecursiveParameterResolver implements ChainableParameterResolverInte
      *
      * {@inheritdoc}
      *
-     * @param Parameter $parameter
-     *
      * @throws RecursionLimitReachedException
      */
     public function resolve(
@@ -89,13 +88,13 @@ final class RecursiveParameterResolver implements ChainableParameterResolverInte
         ResolvingContext $context = null,
         ParameterBag $previousResult = null,
         int $counter = 1
-    ): ParameterBag
-    {
+    ): ParameterBag {
         if (null === $previousResult) {
             $result = $this->resolver->resolve($parameter, $unresolvedParameters, $resolvedParameters, $context);
 
             return $this->resolve($parameter, $unresolvedParameters, $resolvedParameters, $context, $result);
         }
+
         $parameterKey = $parameter->getKey();
         $previousParameterValue = $previousResult->get($parameterKey);
         $counter = $this->incrementCounter($counter, $this->limit, $parameterKey);

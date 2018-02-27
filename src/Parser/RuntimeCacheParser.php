@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Nelmio\Alice\Parser;
 
+use Nelmio\Alice\FileLocatorInterface;
+use Nelmio\Alice\IsAServiceTrait;
+use Nelmio\Alice\ParserInterface;
 use Nelmio\Alice\Throwable\Exception\FileLocator\FileNotFoundException;
 use Nelmio\Alice\Throwable\Exception\InvalidArgumentExceptionFactory;
-use Nelmio\Alice\FileLocatorInterface;
-use Nelmio\Alice\ParserInterface;
-use Nelmio\Alice\IsAServiceTrait;
 
 /**
  * Decorates a parser to cache the result and process includes. Includes are being processed in this parser to be able
@@ -72,9 +72,11 @@ final class RuntimeCacheParser implements ParserInterface
         }
 
         $data = $this->parser->parse($realPath);
+
         if (array_key_exists('include', $data)) {
             $data = $this->includeProcessor->process($this, $file, $data);
         }
+
         $this->cache[$realPath] = $data;
 
         return $data;
